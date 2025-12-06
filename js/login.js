@@ -33,6 +33,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    // Get role from hidden field or currentRole
+    const role = document.getElementById('userRole')?.value || currentRole;
+    
     // Remove previous messages
     const oldMessages = document.querySelectorAll('.error-message, .success-message');
     oldMessages.forEach(msg => msg.remove());
@@ -50,7 +53,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     submitBtn.textContent = 'Login...';
     
     try {
-        if (currentRole === 'pembeli') {
+        if (role === 'pembeli') {
             await loginPembeli(username, password);
         } else {
             await loginPenjual(username, password);
@@ -65,6 +68,19 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 });
 
 async function loginPembeli(username, password) {
+    // Cek apakah username ada
+    const { data: checkUser } = await supabase
+        .from('pembeli')
+        .select('*')
+        .eq('username', username)
+        .single();
+    
+    if (!checkUser) {
+        showMessage('Akun tidak ditemukan!', 'error');
+        return;
+    }
+    
+    // Cek password
     const { data, error } = await supabase
         .from('pembeli')
         .select('*')
@@ -73,7 +89,7 @@ async function loginPembeli(username, password) {
         .single();
     
     if (error || !data) {
-        showMessage('Username atau password salah!', 'error');
+        showMessage('Password salah!', 'error');
         return;
     }
     
@@ -94,6 +110,19 @@ async function loginPembeli(username, password) {
 }
 
 async function loginPenjual(namaRestoran, password) {
+    // Cek apakah restoran ada
+    const { data: checkRestoran } = await supabase
+        .from('restoran')
+        .select('*')
+        .eq('nama_restoran', namaRestoran)
+        .single();
+    
+    if (!checkRestoran) {
+        showMessage('Akun tidak ditemukan!', 'error');
+        return;
+    }
+    
+    // Cek password
     const { data, error } = await supabase
         .from('restoran')
         .select('*')
@@ -102,7 +131,7 @@ async function loginPenjual(namaRestoran, password) {
         .single();
     
     if (error || !data) {
-        showMessage('Nama restoran atau password salah!', 'error');
+        showMessage('Password salah!', 'error');
         return;
     }
     

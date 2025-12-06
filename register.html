@@ -4,105 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Platoo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/register.css">
 </head>
 <body>
     <div class="container">
+        <!-- Welcome Section with Chef -->
+        <div class="welcome-section">
+            <div class="chef-container">
+                <img src="img/animasi-chef.png" alt="Chef Platoo" class="chef-img">
+                <div class="speech-bubble">
+                    <h2>Daftar dulu yuk ke Platoo!</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Register Box -->
         <div class="register-box">
             <div class="logo">
-                <h1>Platoo</h1>
-                <p class="tagline">Start From Your Plate</p>
+                <img src="img/logoPlatoo.png" alt="Platoo Logo">
+                <p class="tagline">Selamatkan Rasa, Selamatkan Bumi <strong>#StartFromYourPlate</strong></p>
             </div>
             
-            <h2>Daftar Akun Baru</h2>
+            <h2 style="color: var(--purple-dark); text-align: center; margin-bottom: 25px; font-size: 24px;">Pilih Tipe Akun untuk Daftar</h2>
             
             <!-- Role Selection -->
-            <div class="role-selection" id="roleSelection">
-                <p>Pilih tipe akun Anda:</p>
+            <div class="role-selection">
+                <p style="text-align: center; color: var(--purple-dark); margin-bottom: 20px; font-weight: 600; font-size: 15px;">Daftar sebagai:</p>
                 <div class="role-buttons">
-                    <button class="role-btn" data-role="pembeli">
-                        <span class="icon">👤</span>
+                    <a href="register-pembeli.html" class="role-btn">
+                        <img src="img/pembeli-type.png" alt="Pembeli" class="icon">
                         <span>Pembeli</span>
-                    </button>
-                    <button class="role-btn" data-role="penjual">
-                        <span class="icon">🏪</span>
+                    </a>
+                    <a href="register-penjual.html" class="role-btn">
+                        <img src="img/resto-type.png" alt="Restoran" class="icon">
                         <span>Restoran/Penjual</span>
-                    </button>
+                    </a>
                 </div>
             </div>
-            
-            <!-- Registration Form -->
-            <form id="registerForm" style="display: none;">
-                <input type="hidden" id="userRole" name="role">
-                
-                <!-- Form Pembeli -->
-                <div id="pembeliForm" class="form-section" style="display: none;">
-                    <div class="form-group">
-                        <label for="nama">Nama Lengkap</label>
-                        <input type="text" id="nama" name="nama" placeholder="Masukkan nama lengkap Anda" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="teleponPembeli">Nomor Telepon</label>
-                        <input type="tel" id="teleponPembeli" name="telepon" placeholder="08xxxxxxxxxx" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="usernamePembeli">Username</label>
-                        <input type="text" id="usernamePembeli" name="username" placeholder="Pilih username unik Anda" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="passwordPembeli">Password</label>
-                        <input type="password" id="passwordPembeli" name="password" placeholder="Minimal 6 karakter" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="confirmPasswordPembeli">Konfirmasi Password</label>
-                        <input type="password" id="confirmPasswordPembeli" placeholder="Ulangi password Anda" required>
-                    </div>
-                </div>
-                
-                <!-- Form Penjual/Restoran -->
-                <div id="penjualForm" class="form-section" style="display: none;">
-                    <div class="form-group">
-                        <label for="namaRestoran">Nama Restoran</label>
-                        <input type="text" id="namaRestoran" name="namaRestoran" placeholder="Nama restoran Anda (sebagai username)" required>
-                        <small>Nama restoran akan menjadi username Anda dan harus unik</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="teleponRestoran">Nomor Telepon Restoran</label>
-                        <input type="tel" id="teleponRestoran" name="telepon" placeholder="08xxxxxxxxxx" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="alamatRestoran">Alamat Restoran</label>
-                        <textarea id="alamatRestoran" name="alamat" rows="3" placeholder="Masukkan alamat lengkap restoran" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="passwordPenjual">Password</label>
-                        <input type="password" id="passwordPenjual" name="password" placeholder="Minimal 6 karakter" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="confirmPasswordPenjual">Konfirmasi Password</label>
-                        <input type="password" id="confirmPasswordPenjual" placeholder="Ulangi password Anda" required>
-                    </div>
-                </div>
-                
-                <button type="button" class="btn-back" id="backBtn">← Kembali</button>
-                <button type="submit" class="btn-submit">Daftar</button>
-            </form>
             
             <div class="login-link">
                 Sudah punya akun? <a href="login.html">Login di sini</a>
             </div>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/register.js"></script>
 </body>
 </html>

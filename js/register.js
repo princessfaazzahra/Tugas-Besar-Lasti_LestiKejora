@@ -13,82 +13,94 @@ let selectedRole = null;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing event listeners...');
     
-    document.querySelectorAll('.role-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            selectedRole = this.dataset.role;
-            console.log('Role selected:', selectedRole);
-            
-            // Update UI
-            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Show form
-            setTimeout(() => {
-                document.getElementById('roleSelection').style.display = 'none';
-                document.getElementById('registerForm').style.display = 'block';
-                document.getElementById('userRole').value = selectedRole;
+    // Only for register.html with role selection
+    const roleButtons = document.querySelectorAll('.role-btn');
+    if (roleButtons.length > 0) {
+        roleButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                selectedRole = this.dataset.role;
+                console.log('Role selected:', selectedRole);
                 
-                // Show appropriate form section
-                if (selectedRole === 'pembeli') {
-                    document.getElementById('pembeliForm').style.display = 'block';
-                    document.getElementById('penjualForm').style.display = 'none';
-                } else {
-                    document.getElementById('pembeliForm').style.display = 'none';
-                    document.getElementById('penjualForm').style.display = 'block';
-                }
-            }, 300);
+                // Update UI
+                document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show form
+                setTimeout(() => {
+                    document.getElementById('roleSelection').style.display = 'none';
+                    document.getElementById('registerForm').style.display = 'block';
+                    document.getElementById('userRole').value = selectedRole;
+                    
+                    // Show appropriate form section
+                    if (selectedRole === 'pembeli') {
+                        document.getElementById('pembeliForm').style.display = 'block';
+                        document.getElementById('penjualForm').style.display = 'none';
+                    } else {
+                        document.getElementById('pembeliForm').style.display = 'none';
+                        document.getElementById('penjualForm').style.display = 'block';
+                    }
+                }, 300);
+            });
         });
-    });
+    }
 
-    // Back button
-    document.getElementById('backBtn').addEventListener('click', function() {
-        console.log('Back button clicked');
-        document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('roleSelection').style.display = 'block';
-        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-        selectedRole = null;
-    });
+    // Back button (only in register.html)
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            console.log('Back button clicked');
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('roleSelection').style.display = 'block';
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            selectedRole = null;
+        });
+    }
 
     // Form submission
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        console.log('Form submitted! Selected role:', selectedRole);
-        
-        // Remove previous messages
-        const oldMessages = document.querySelectorAll('.error-message, .success-message');
-        oldMessages.forEach(msg => msg.remove());
-        
-        const submitBtn = this.querySelector('.btn-submit');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Mendaftar...';
-        
-        try {
-            if (selectedRole === 'pembeli') {
-                console.log('Calling registerPembeli...');
-                await registerPembeli();
-            } else {
-                console.log('Calling registerPenjual...');
-                await registerPenjual();
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get role from hidden field or selected role
+            const role = document.getElementById('userRole')?.value || selectedRole;
+            console.log('Form submitted! Role:', role);
+            
+            // Remove previous messages
+            const oldMessages = document.querySelectorAll('.error-message, .success-message');
+            oldMessages.forEach(msg => msg.remove());
+            
+            const submitBtn = this.querySelector('.btn-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Mendaftar...';
+            
+            try {
+                if (role === 'pembeli') {
+                    console.log('Calling registerPembeli...');
+                    await registerPembeli();
+                } else {
+                    console.log('Calling registerPenjual...');
+                    await registerPenjual();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Terjadi kesalahan: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Daftar';
             }
-        } catch (error) {
-            console.error('Error:', error);
-            showMessage('Terjadi kesalahan: ' + error.message, 'error');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Daftar';
-        }
-    });
+        });
+    }
     
     console.log('All event listeners initialized!');
 });
 
 async function registerPembeli() {
     const nama = document.getElementById('nama').value.trim();
-    const telepon = document.getElementById('teleponPembeli').value.trim();
-    const username = document.getElementById('usernamePembeli').value.trim();
-    const password = document.getElementById('passwordPembeli').value;
-    const confirmPassword = document.getElementById('confirmPasswordPembeli').value;
+    const telepon = document.getElementById('telepon').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
     
     console.log('RegisterPembeli called with:', { nama, telepon, username });
     
@@ -151,10 +163,10 @@ async function registerPembeli() {
 
 async function registerPenjual() {
     const namaRestoran = document.getElementById('namaRestoran').value.trim();
-    const telepon = document.getElementById('teleponRestoran').value.trim();
-    const alamat = document.getElementById('alamatRestoran').value.trim();
-    const password = document.getElementById('passwordPenjual').value;
-    const confirmPassword = document.getElementById('confirmPasswordPenjual').value;
+    const telepon = document.getElementById('telepon').value.trim();
+    const alamat = document.getElementById('alamat').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
     
     // Validasi
     if (!namaRestoran || !telepon || !alamat || !password) {
