@@ -12,7 +12,40 @@ let selectedRole = null;
 // Role selection
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing event listeners...');
-    
+
+    // Image preview handler
+    const fotoInput = document.getElementById('fotoRestoran');
+    if (fotoInput) {
+        fotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validasi ukuran file (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showMessage('Ukuran file terlalu besar! Maksimal 5MB', 'error');
+                    this.value = '';
+                    return;
+                }
+
+                // Validasi tipe file
+                if (!file.type.startsWith('image/')) {
+                    showMessage('File harus berupa gambar!', 'error');
+                    this.value = '';
+                    return;
+                }
+
+                // Preview gambar
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    const previewImg = document.getElementById('previewImg');
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     // Only for register.html with role selection
     const roleButtons = document.querySelectorAll('.role-btn');
     if (roleButtons.length > 0) {
@@ -167,40 +200,76 @@ async function registerPenjual() {
     const alamat = document.getElementById('alamat').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    
+    const fotoInput = document.getElementById('fotoRestoran');
+    const fotoFile = fotoInput ? fotoInput.files[0] : null;
+
     // Validasi
     if (!namaRestoran || !telepon || !alamat || !password) {
         showMessage('Semua field harus diisi!', 'error');
         return;
     }
-    
+
+    if (fotoInput && !fotoFile) {
+        showMessage('Foto restoran harus diupload!', 'error');
+        return;
+    }
+
     if (password !== confirmPassword) {
         showMessage('Password dan konfirmasi password tidak cocok!', 'error');
         return;
     }
-    
+
     if (password.length < 6) {
         showMessage('Password minimal 6 karakter!', 'error');
         return;
     }
-    
+
     if (!validatePhone(telepon)) {
         showMessage('Format nomor telepon tidak valid!', 'error');
         return;
     }
-    
+
     // Cek apakah nama restoran (username) sudah ada
     const { data: existingRestoran } = await supabase
         .from('restoran')
         .select('nama_restoran')
         .eq('nama_restoran', namaRestoran)
         .single();
-    
+
     if (existingRestoran) {
         showMessage('Nama restoran sudah digunakan!', 'error');
         return;
     }
-    
+
+    let fotoUrl = null;
+
+    // Upload foto ke Supabase Storage jika ada
+    if (fotoFile) {
+        const fileExt = fotoFile.name.split('.').pop();
+        const fileName = `${namaRestoran.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
+        const filePath = `restoran/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('resto-photos')
+            .upload(filePath, fotoFile, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('Upload error:', uploadError);
+            showMessage('Gagal mengupload foto: ' + uploadError.message, 'error');
+            return;
+        }
+
+        // Dapatkan public URL
+        const { data: urlData } = supabase.storage
+            .from('resto-photos')
+            .getPublicUrl(filePath);
+
+        fotoUrl = urlData.publicUrl;
+    }
+
     // Insert data penjual
     const { data, error } = await supabase
         .from('restoran')
@@ -209,17 +278,18 @@ async function registerPenjual() {
                 nama_restoran: namaRestoran,
                 nomor_telepon: telepon,
                 alamat: alamat,
-                password: password // CATATAN: Di production, gunakan hashing!
+                password: password, // CATATAN: Di production, gunakan hashing!
+                foto_url: fotoUrl
             }
         ])
         .select();
-    
+
     if (error) {
         throw error;
     }
-    
+
     showMessage('Registrasi berhasil! Silakan login.', 'success');
-    
+
     setTimeout(() => {
         window.location.href = 'login.html';
     }, 2000);
