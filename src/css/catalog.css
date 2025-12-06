@@ -84,6 +84,13 @@ body {
 .rating {
     color: var(--purple-medium);
     font-weight: 600;
+        display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.rating svg {
+    flex-shrink: 0;
 }
 
 .divider {
@@ -146,6 +153,16 @@ body {
     gap: 1rem;
     font-size: 1rem;
     opacity: 0.95;
+}
+
+.header-details > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.header-details svg {
+    flex-shrink: 0;
 }
 
 /* Main Content */

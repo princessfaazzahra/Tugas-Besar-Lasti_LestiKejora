@@ -104,13 +104,25 @@ function displayRestaurantInfo(restaurant) {
     
     // Navbar
     document.getElementById('restaurantName').textContent = restaurant.nama_restoran;
-    document.getElementById('restaurantRating').textContent = `⭐ ${rating}`;
+    document.getElementById('restaurantRating').innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFD700" style="vertical-align: middle; margin-right: 4px;">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        ${rating}`;
     document.getElementById('restaurantAddress').textContent = truncateText(restaurant.alamat, 30);
 
     // Header
     document.getElementById('headerName').textContent = restaurant.nama_restoran;
-    document.getElementById('headerRating').textContent = `⭐ ${rating}`;
-    document.getElementById('headerPhone').textContent = `📞 ${restaurant.nomor_telepon}`;
+    document.getElementById('headerRating').innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFD700" style="vertical-align: middle; margin-right: 4px;">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        ${rating}`;
+    document.getElementById('headerPhone').innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+            <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+        </svg>
+        ${restaurant.nomor_telepon}`;
 
     // Set header background if photo available
     if (restaurant.foto_url && restaurant.foto_url.trim() !== '') {
@@ -270,16 +282,25 @@ function createMenuCard(item) {
     const emojis = ['🍕', '🍔', '🍜', '🍱', '🍝', '🥘', '🍛', '🍲', '🥗', '🍖', '🍗', '🥙', '🌮', '🌯', '🥪', '🍰', '🧁', '🍩', '☕', '🧃'];
     const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
 
-    const hasPhoto = item.foto_menu && item.foto_menu.trim() !== '';
+    // Check for photo - try multiple possible field names
+    const photoUrl = item.foto_menu || item.photo_url || item.image_url || item.foto || '';
+    const hasPhoto = photoUrl && photoUrl.trim() !== '';
+    
+    console.log(`Item ${itemId} photo:`, photoUrl, 'hasPhoto:', hasPhoto);
+    
     const price = formatRupiah(item.harga);
     const originalPrice = item.harga_asli ? formatRupiah(item.harga_asli) : null;
     const discount = item.harga_asli ? Math.round(((item.harga_asli - item.harga) / item.harga_asli) * 100) : 0;
 
     card.innerHTML = `
-        <div class="menu-card-image ${hasPhoto ? 'has-photo' : ''}">
+        <div class="menu-card-image ${hasPhoto ? 'has-photo' : ''}" data-emoji="${randomEmoji}">
             ${hasPhoto 
-                ? `<img src="${item.foto_menu}" alt="${item.nama_makanan || 'Menu'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                   <span style="display:none; font-size: 4rem;">${randomEmoji}</span>`
+                ? `<img src="${photoUrl}" 
+                       alt="${item.nama_makanan || 'Menu'}" 
+                       crossorigin="anonymous"
+                       onerror="handleImageError(this, '${randomEmoji}')"
+                       onload="console.log('✅ Image loaded:', '${item.nama_makanan}');">
+                   <span class="emoji-fallback" style="font-size: 4rem; width: 100%; height: 100%; display: none; align-items: center; justify-content: center;">${randomEmoji}</span>`
                 : `<span style="font-size: 4rem;">${randomEmoji}</span>`
             }
             ${discount > 0 ? `<div class="menu-badge">🔥 -${discount}%</div>` : ''}
@@ -668,6 +689,28 @@ function proceedToCheckout() {
     setTimeout(() => {
         window.location.href = '../html/checkout.html';
     }, 1000);
+}
+
+// Handle image loading error
+function handleImageError(img, emoji) {
+    console.error('❌ Failed to load image:', img.src);
+    console.log('Showing emoji fallback:', emoji);
+    
+    // Hide image
+    img.style.display = 'none';
+    
+    // Show emoji fallback
+    const fallback = img.nextElementSibling;
+    if (fallback && fallback.classList.contains('emoji-fallback')) {
+        fallback.style.display = 'flex';
+    } else {
+        // Create fallback if not exists
+        const container = img.parentElement;
+        const emojiSpan = document.createElement('span');
+        emojiSpan.style.cssText = 'font-size: 4rem; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;';
+        emojiSpan.textContent = emoji;
+        container.appendChild(emojiSpan);
+    }
 }
 
 function formatRupiah(amount) {
