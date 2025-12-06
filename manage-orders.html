@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders - Platoo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/manage-orders.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container-header">
+            <div class="logo">
+                <img src="img/logoPlatoo.png" alt="Platoo Logo">
+                <h1>Platoo</h1>
+            </div>
+            <nav class="nav">
+                <span id="restaurantName" class="restaurant-name">Restaurant Name</span>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <h2>Manage Orders</h2>
+                <p class="subtitle">Kelola pesanan dari pelanggan Anda</p>
+            </div>
+
+            <!-- Filter Status -->
+            <div class="filter-section">
+                <button class="filter-btn active" data-status="all">Semua</button>
+                <button class="filter-btn" data-status="Sedang Diproses">Sedang Diproses</button>
+                <button class="filter-btn" data-status="Siap Diambil">Siap Diambil</button>
+                <button class="filter-btn" data-status="Selesai">Selesai</button>
+            </div>
+
+            <!-- Orders List -->
+            <div id="ordersContainer" class="orders-container">
+                <!-- Orders will be loaded here -->
+                <div class="loading">Memuat pesanan...</div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <img src="img/empty-orders.png" alt="No Orders" style="max-width: 300px; opacity: 0.5;">
+                <h3>Belum ada pesanan</h3>
+                <p>Pesanan dari pelanggan akan muncul di sini</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Order Details -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Detail Pesanan</h3>
+            <div id="orderDetails"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="closeModal">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/manage-orders.js"></script>
+</body>
+</html>

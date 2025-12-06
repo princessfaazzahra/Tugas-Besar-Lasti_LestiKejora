@@ -1,0 +1,447 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --purple-dark: #4B0082;
+    --purple-medium: #6B1199;
+    --purple-light: #D8B5E8;
+    --cream: #F5E6D3;
+    --white: #FFFFFF;
+    --gray-light: #F5F5F5;
+    --gray-medium: #E0E0E0;
+    --text-dark: #333;
+    --success: #4CAF50;
+    --warning: #FF9800;
+    --info: #2196F3;
+}
+
+body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, rgba(75, 0, 130, 0.05) 0%, rgba(216, 181, 232, 0.1) 100%);
+    min-height: 100vh;
+}
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-medium) 100%);
+    color: white;
+    padding: 20px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.container-header {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo img {
+    height: 40px;
+    width: auto;
+}
+
+.logo h1 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.restaurant-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.btn-logout {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+    background: white;
+    color: var(--purple-dark);
+}
+
+/* Main Content */
+.main-content {
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-header h2 {
+    font-size: 32px;
+    color: var(--purple-dark);
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 16px;
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.filter-btn {
+    padding: 10px 24px;
+    border: 2px solid var(--purple-light);
+    background: white;
+    color: var(--purple-dark);
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    border-color: var(--purple-medium);
+    transform: translateY(-2px);
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-medium) 100%);
+    color: white;
+    border-color: var(--purple-dark);
+}
+
+/* Orders Container */
+.orders-container {
+    display: grid;
+    gap: 20px;
+}
+
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 18px;
+}
+
+/* Order Card */
+.order-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.order-card:hover {
+    box-shadow: 0 8px 24px rgba(75, 0, 130, 0.15);
+    border-color: var(--purple-light);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--gray-light);
+}
+
+.order-info h3 {
+    color: var(--purple-dark);
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.order-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.status-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+}
+
+.status-badge.sedang-diproses {
+    background: rgba(255, 152, 0, 0.1);
+    color: var(--warning);
+    border: 2px solid var(--warning);
+}
+
+.status-badge.siap-diambil {
+    background: rgba(33, 150, 243, 0.1);
+    color: var(--info);
+    border: 2px solid var(--info);
+}
+
+.status-badge.selesai {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+    border: 2px solid var(--success);
+}
+
+.order-body {
+    margin-bottom: 16px;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+
+.item-details {
+    font-size: 14px;
+    color: #666;
+}
+
+.item-price {
+    font-weight: 700;
+    color: var(--purple-dark);
+    font-size: 16px;
+}
+
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--purple-dark);
+    border-top: 2px solid var(--gray-light);
+}
+
+.order-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.btn-update-status {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-process {
+    background: linear-gradient(135deg, var(--warning) 0%, #FF6F00 100%);
+    color: white;
+}
+
+.btn-ready {
+    background: linear-gradient(135deg, var(--info) 0%, #1976D2 100%);
+    color: white;
+}
+
+.btn-complete {
+    background: linear-gradient(135deg, var(--success) 0%, #388E3C 100%);
+    color: white;
+}
+
+.btn-update-status:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-update-status:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-state h3 {
+    color: var(--purple-dark);
+    font-size: 24px;
+    margin: 20px 0 10px;
+}
+
+.empty-state p {
+    color: #666;
+    font-size: 16px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close:hover {
+    color: var(--purple-dark);
+}
+
+.modal-content h3 {
+    color: var(--purple-dark);
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.modal-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    background: var(--gray-medium);
+    color: var(--text-dark);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #ccc;
+}
+
+/* Error/Success Messages */
+.message {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.message.error {
+    background: #fee;
+    color: #c33;
+    border: 2px solid #c33;
+}
+
+.message.success {
+    background: #efe;
+    color: #3c3;
+    border: 2px solid #3c3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header h2 {
+        font-size: 24px;
+    }
+
+    .order-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .order-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .order-actions {
+        flex-direction: column;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 20px;
+    }
+}
