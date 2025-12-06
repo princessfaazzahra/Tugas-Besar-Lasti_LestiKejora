@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Platoo</title>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <div class="logo">
+                <h1>Platoo</h1>
+                <p class="tagline">Start From Your Plate</p>
+            </div>
+            
+            <h2>Selamat Datang Kembali!</h2>
+            
+            <!-- Role Selection -->
+            <div class="role-tabs">
+                <button class="tab-btn active" data-role="pembeli">Pembeli</button>
+                <button class="tab-btn" data-role="penjual">Restoran</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm">
+                <input type="hidden" id="userRole" value="pembeli">
+                
+                <div class="form-group">
+                    <label for="username" id="usernameLabel">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Masukkan username Anda" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Masukkan password Anda" required>
+                </div>
+                
+                <div class="forgot-password">
+                    <a href="#">Lupa password?</a>
+                </div>
+                
+                <button type="submit" class="btn-submit">Login</button>
+            </form>
+            
+            <div class="register-link">
+                Belum punya akun? <a href="register.html">Daftar di sini</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>

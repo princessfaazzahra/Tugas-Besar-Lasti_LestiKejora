@@ -1,0 +1,212 @@
+// GANTI dengan kredensial Supabase Anda
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let selectedRole = null;
+
+// Role selection
+document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        selectedRole = this.dataset.role;
+        
+        // Update UI
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Show form
+        setTimeout(() => {
+            document.getElementById('roleSelection').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('userRole').value = selectedRole;
+            
+            // Show appropriate form section
+            if (selectedRole === 'pembeli') {
+                document.getElementById('pembeliForm').style.display = 'block';
+                document.getElementById('penjualForm').style.display = 'none';
+            } else {
+                document.getElementById('pembeliForm').style.display = 'none';
+                document.getElementById('penjualForm').style.display = 'block';
+            }
+        }, 300);
+    });
+});
+
+// Back button
+document.getElementById('backBtn').addEventListener('click', function() {
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('roleSelection').style.display = 'block';
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    selectedRole = null;
+});
+
+// Form submission
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Remove previous messages
+    const oldMessages = document.querySelectorAll('.error-message, .success-message');
+    oldMessages.forEach(msg => msg.remove());
+    
+    const submitBtn = this.querySelector('.btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Mendaftar...';
+    
+    try {
+        if (selectedRole === 'pembeli') {
+            await registerPembeli();
+        } else {
+            await registerPenjual();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showMessage('Terjadi kesalahan: ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Daftar';
+    }
+});
+
+async function registerPembeli() {
+    const nama = document.getElementById('nama').value.trim();
+    const telepon = document.getElementById('teleponPembeli').value.trim();
+    const username = document.getElementById('usernamePembeli').value.trim();
+    const password = document.getElementById('passwordPembeli').value;
+    const confirmPassword = document.getElementById('confirmPasswordPembeli').value;
+    
+    // Validasi
+    if (!nama || !telepon || !username || !password) {
+        showMessage('Semua field harus diisi!', 'error');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showMessage('Password dan konfirmasi password tidak cocok!', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showMessage('Password minimal 6 karakter!', 'error');
+        return;
+    }
+    
+    if (!validatePhone(telepon)) {
+        showMessage('Format nomor telepon tidak valid!', 'error');
+        return;
+    }
+    
+    // Cek apakah username sudah ada
+    const { data: existingUser } = await supabase
+        .from('pembeli')
+        .select('username')
+        .eq('username', username)
+        .single();
+    
+    if (existingUser) {
+        showMessage('Username sudah digunakan!', 'error');
+        return;
+    }
+    
+    // Insert data pembeli
+    const { data, error } = await supabase
+        .from('pembeli')
+        .insert([
+            {
+                nama: nama,
+                nomor_telepon: telepon,
+                username: username,
+                password: password // CATATAN: Di production, gunakan hashing!
+            }
+        ])
+        .select();
+    
+    if (error) {
+        throw error;
+    }
+    
+    showMessage('Registrasi berhasil! Silakan login.', 'success');
+    
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 2000);
+}
+
+async function registerPenjual() {
+    const namaRestoran = document.getElementById('namaRestoran').value.trim();
+    const telepon = document.getElementById('teleponRestoran').value.trim();
+    const alamat = document.getElementById('alamatRestoran').value.trim();
+    const password = document.getElementById('passwordPenjual').value;
+    const confirmPassword = document.getElementById('confirmPasswordPenjual').value;
+    
+    // Validasi
+    if (!namaRestoran || !telepon || !alamat || !password) {
+        showMessage('Semua field harus diisi!', 'error');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showMessage('Password dan konfirmasi password tidak cocok!', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showMessage('Password minimal 6 karakter!', 'error');
+        return;
+    }
+    
+    if (!validatePhone(telepon)) {
+        showMessage('Format nomor telepon tidak valid!', 'error');
+        return;
+    }
+    
+    // Cek apakah nama restoran (username) sudah ada
+    const { data: existingRestoran } = await supabase
+        .from('penjual')
+        .select('nama_restoran')
+        .eq('nama_restoran', namaRestoran)
+        .single();
+    
+    if (existingRestoran) {
+        showMessage('Nama restoran sudah digunakan!', 'error');
+        return;
+    }
+    
+    // Insert data penjual
+    const { data, error } = await supabase
+        .from('penjual')
+        .insert([
+            {
+                nama_restoran: namaRestoran,
+                nomor_telepon: telepon,
+                alamat: alamat,
+                password: password // CATATAN: Di production, gunakan hashing!
+            }
+        ])
+        .select();
+    
+    if (error) {
+        throw error;
+    }
+    
+    showMessage('Registrasi berhasil! Silakan login.', 'success');
+    
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 2000);
+}
+
+function validatePhone(phone) {
+    // Format Indonesia: 08xxxxxxxxxx (minimal 10 digit)
+    const phoneRegex = /^08\d{8,12}$/;
+    return phoneRegex.test(phone);
+}
+
+function showMessage(message, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+    messageDiv.textContent = message;
+    
+    const form = document.getElementById('registerForm');
+    form.insertBefore(messageDiv, form.firstChild);
+}
