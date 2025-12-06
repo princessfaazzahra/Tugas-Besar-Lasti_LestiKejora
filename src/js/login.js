@@ -135,19 +135,21 @@ async function loginPenjual(namaRestoran, password) {
         return;
     }
     
-    // Simpan data user ke localStorage
-    localStorage.setItem('platoo_user', JSON.stringify({
-        id: data.id,
+    const userData = {
+        id: data.id_penjual,  // Coba kedua kemungkinan
         nama_restoran: data.nama_restoran,
         alamat: data.alamat,
         role: 'penjual'
-    }));
+    };
+    
+    localStorage.setItem('platoo_user', JSON.stringify(userData));
+    localStorage.setItem('resto_id', userData.id);
     
     showMessage('Login berhasil! Mengalihkan...', 'success');
     
     // Redirect ke dashboard penjual
     setTimeout(() => {
-        window.location.href = 'dashboard-penjual.html';
+        window.location.href = 'catalog.html';
     }, 1500);
 }
 
