@@ -19,7 +19,7 @@ function checkAuth() {
     // Check if user exists and is pembeli
     if (!user || !user.username || user.role !== 'pembeli') {
         console.log('Auth check failed:', user);
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
         return;
     }
     
@@ -35,7 +35,7 @@ function setupEventListeners() {
     // Logout button
     document.getElementById('logoutBtn').addEventListener('click', function() {
         localStorage.removeItem('platoo_user');
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
     });
     
     // Search functionality
@@ -126,7 +126,8 @@ function displayRestaurants(restaurants) {
 function createRestaurantCard(restaurant) {
     const card = document.createElement('div');
     card.className = 'restaurant-card';
-    card.onclick = () => viewRestaurantCatalog(restaurant.id);
+    
+    card.onclick = () => viewRestaurantCatalog(restaurant.id_penjual);
     
     // Use restaurant photo if available, otherwise use emoji
     const emojis = ['🍕', '🍔', '🍜', '🍱', '🍝', '🥘', '🍛', '🍲', '🥗', '🍖'];
@@ -163,7 +164,7 @@ function createRestaurantCard(restaurant) {
                     </svg>
                     <span>${restaurant.nomor_telepon}</span>
                 </div>
-                <button class="card-button" onclick="event.stopPropagation(); viewRestaurantCatalog(${restaurant.id})">
+                <button class="card-button" onclick="event.stopPropagation(); viewRestaurantCatalog(${restaurant.id_penjual})">
                     Lihat Menu
                 </button>
             </div>
@@ -223,7 +224,7 @@ function updateFilterCounts() {
 
 function viewRestaurantCatalog(restaurantId) {
     // Navigate to catalog page with restaurant ID
-    window.location.href = `catalog.html?id=${restaurantId}`;
+    window.location.href = `../html/catalog.html?id=${restaurantId}`;
 }
 
 function showNotification(message, type = 'info') {

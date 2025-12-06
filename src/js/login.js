@@ -105,7 +105,7 @@ async function loginPembeli(username, password) {
     
     // Redirect ke dashboard pembeli
     setTimeout(() => {
-        window.location.href = 'dashboard-pembeli.html';
+        window.location.href = '../html/dashboard-pembeli.html';
     }, 1500);
 }
 
@@ -147,7 +147,7 @@ async function loginPenjual(namaRestoran, password) {
     
     // Redirect ke dashboard penjual
     setTimeout(() => {
-        window.location.href = 'dashboard-penjual.html';
+        window.location.href = '../html/dashboard-penjual.html';
     }, 1500);
 }
 
