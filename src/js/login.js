@@ -149,7 +149,7 @@ async function loginPenjual(namaRestoran, password) {
     
     // Redirect ke dashboard penjual
     setTimeout(() => {
-        window.location.href = 'catalog.html';
+        window.location.href = 'dashboard-penjual.html';
     }, 1500);
 }
 

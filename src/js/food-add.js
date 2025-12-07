@@ -64,7 +64,7 @@ async function getCurrentRestoId() {
     
     if (!restoId) {
         await showAlert('Sesi habis atau belum login. Silakan login kembali.', 'warning');
-        window.location.href = 'login-penjual.html';
+        window.location.href = 'login.html';
         return null;
     }
     
