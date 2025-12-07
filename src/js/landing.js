@@ -67,9 +67,9 @@ const heroObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const stats = document.querySelectorAll('.stat-item h3');
-            animateCounter(stats[0], 1000);
-            animateCounter(stats[1], 500);
-            animateCounter(stats[2], 2000);
+            animateCounter(stats[0], 100);
+            animateCounter(stats[1], 20);
+            animateCounter(stats[2], 200);
             heroObserver.unobserve(entry.target);
         }
     });

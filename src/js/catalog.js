@@ -150,7 +150,8 @@ async function loadMenuItems() {
         console.log('Test 1: Checking if catalog table has any data...');
         const { data: allCatalog, error: allError } = await supabase
             .from('catalog')
-            .select('*');
+            .select('*')
+            .eq('is_aktif', true);
         
         console.log('All catalog data:', allCatalog);
         console.log('Total items in catalog:', allCatalog?.length || 0);
@@ -175,7 +176,8 @@ async function loadMenuItems() {
         const { data: menuItems, error } = await supabase
             .from('catalog')
             .select('*')
-            .eq('resto_id', restoId);
+            .eq('resto_id', restoId)
+            .eq('is_aktif', true);
 
         console.log('=== QUERY RESULT ===');
         console.log('Error:', error);
