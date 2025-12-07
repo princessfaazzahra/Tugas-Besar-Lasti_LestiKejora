@@ -1,6 +1,6 @@
 // Supabase Configuration
-const SUPABASE_URL = 'https://your-project.supabase.co';
-const SUPABASE_KEY = 'your-anon-key';
+const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Constants
@@ -57,7 +57,7 @@ async function initializeCheckout() {
                 return;
             }
         } else if (devMode && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-            currentUser = { id: 'dev-user-1', email: 'dev@local.test', full_name: 'Dev Tester' };
+            currentUser = { id: 1, email: 'dev@local.test', full_name: 'Dev Tester' };
             console.info('Using dev fallback user for localhost testing:', currentUser);
         } else {
             // No authenticated user - redirect to login (production behavior)
@@ -78,26 +78,53 @@ async function initializeCheckout() {
     const cart = JSON.parse(cartData);
     orderData.items = cart.items || [];
     orderData.restaurantId = cart.restaurantId;
+    
+    console.log('Cart data loaded:', cart);
+    console.log('Restaurant ID:', orderData.restaurantId);
+    console.log('Items from cart:', orderData.items);
 
     if (orderData.items.length === 0) {
         showEmptyCart();
         return;
     }
 
+    // PRIORITAS PERTAMA: Fetch item photos dari database
+    try {
+        console.log('🔥 STEP 1: About to fetch item photos...');
+        await fetchItemPhotos();
+        console.log('✅ STEP 1 DONE: Finished fetching item photos');
+        console.log('Items after fetch:', orderData.items);
+    } catch (error) {
+        console.error('❌ Error in main fetchItemPhotos call:', error);
+    }
+
     // Fetch restaurant info
-    await fetchRestaurantInfo();
+    try {
+        console.log('🔥 STEP 2: Fetching restaurant info...');
+        await fetchRestaurantInfo();
+        console.log('✅ STEP 2 DONE');
+    } catch (error) {
+        console.error('❌ Error fetching restaurant info:', error);
+    }
 
     // Load customer info
-    await loadCustomerInfo(currentUser.id);
+    try {
+        await loadCustomerInfo(currentUser.id);
+    } catch (error) {
+        console.error('❌ Error loading customer info:', error);
+    }
 
     // Load available vouchers
-    await loadAvailableVouchers();
+    try {
+        await loadAvailableVouchers();
+    } catch (error) {
+        console.error('❌ Error loading vouchers:', error);
+    }
 
     // Populate UI
     renderOrderItems();
     calculateTotals();
     updatePriceBreakdown();
-    renderPickupInfo();
 
     // Show checkout actions
     document.getElementById('checkoutActions').style.display = 'flex';
@@ -112,15 +139,105 @@ async function initializeCheckout() {
 async function fetchRestaurantInfo() {
     try {
         const { data, error } = await supabase
-            .from('restaurants')
-            .select('id, name, address, phone, email')
-            .eq('id', orderData.restaurantId)
+            .from('restoran')
+            .select('id_penjual, nama_restoran, alamat, nomor_telepon, foto_url, rate')
+            .eq('id_penjual', orderData.restaurantId)
             .single();
 
         if (error) throw error;
-        orderData.restaurantInfo = data;
+        
+        // Map field names dari database ke format yang dipakai di orderData
+        orderData.restaurantInfo = {
+            id: data.id_penjual,
+            name: data.nama_restoran,
+            address: data.alamat,
+            phone: data.nomor_telepon,
+            photo: data.foto_url,
+            rating: data.rate
+        };
+        
+        console.log('Restaurant info loaded:', orderData.restaurantInfo);
     } catch (error) {
         console.error('Error fetching restaurant info:', error);
+        // Set default values jika gagal
+        orderData.restaurantInfo = {
+            id: orderData.restaurantId,
+            name: 'Restoran',
+            address: '-',
+            phone: '-',
+            photo: null
+        };
+    }
+}
+
+async function fetchItemPhotos() {
+    console.log('=== FETCH ITEM PHOTOS STARTED ===');
+    try {
+        // Get all item IDs
+        const itemIds = orderData.items.map(item => item.id);
+        console.log('Item IDs to fetch:', itemIds);
+        
+        if (!supabase) {
+            console.error('❌ Supabase is not initialized!');
+            return;
+        }
+        
+        console.log('Fetching from Supabase catalog table...');
+        
+        // Fetch from catalog table - gunakan catalog_id sebagai PK
+        const { data, error } = await supabase
+            .from('catalog')
+            .select('*')
+            .in('catalog_id', itemIds);
+        
+        console.log('Supabase response:', { data, error });
+        
+        if (error) {
+            console.error('❌ Supabase error:', error);
+            throw error;
+        }
+        
+        if (!data || data.length === 0) {
+            console.warn('⚠️ No data returned from catalog table for IDs:', itemIds);
+            return;
+        }
+        
+        console.log(`✅ Fetched ${data.length} items from catalog:`, data);
+        
+        // Update items dengan data lengkap dari catalog
+        orderData.items = orderData.items.map(item => {
+            const catalogItem = data.find(d => d.catalog_id === item.id);
+            if (catalogItem) {
+                // Gunakan kolom 'foto' dari CSV
+                const photoUrl = catalogItem.foto || '';
+                console.log(`✅ Processing ${catalogItem.nama_makanan}:`, {
+                    catalog_id: catalogItem.catalog_id,
+                    foto: catalogItem.foto,
+                    finalPhotoUrl: photoUrl
+                });
+                return {
+                    ...item,
+                    image_url: photoUrl,
+                    foto: catalogItem.foto,
+                    nama_makanan: catalogItem.nama_makanan
+                };
+            } else {
+                console.warn(`⚠️ No catalog match found for item ID ${item.id}`);
+                return item;
+            }
+        });
+        
+        console.log('✅ Final items after update:', orderData.items);
+        
+        // Update localStorage
+        localStorage.setItem('platoo_cart', JSON.stringify({
+            items: orderData.items,
+            restaurantId: orderData.restaurantId
+        }));
+        
+        console.log('=== FETCH ITEM PHOTOS COMPLETED ===');
+    } catch (error) {
+        console.error('❌ Error in fetchItemPhotos:', error);
     }
 }
 
@@ -148,42 +265,24 @@ async function loadCustomerInfo(userId) {
 async function loadAvailableVouchers() {
     try {
         const today = new Date().toISOString().split('T')[0];
-        
+
+        // Filter vouchers by restaurant ID
         const { data, error } = await supabase
-            .from('vouchers')
+            .from('voucher')
             .select('*')
-            .eq('is_active', true)
-            .lte('start_date', today)
-            .gte('end_date', today)
-            .order('discount_percentage', { ascending: false });
+            .eq('resto_id', orderData.restaurantId)
+            .gt('stok', 0)
+            .gte('expired_date', today)
+            .order('potongan', { ascending: false });
 
         if (error) throw error;
-        
+
         availableVouchers = data || [];
-        // If running on localhost and no vouchers returned, inject a test voucher for local testing
-        const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        if (isLocal && (!availableVouchers || availableVouchers.length === 0)) {
-            const sample = {
-                id: 'dev-voucher-1',
-                code: 'DEV5K',
-                description: 'Voucher uji: potongan Rp5.000',
-                amount: 5000,
-                start_date: today,
-                end_date: today,
-                is_active: true
-            };
-            availableVouchers = [sample];
-        }
+        console.log('Vouchers loaded for restaurant', orderData.restaurantId, ':', availableVouchers);
         renderVoucherList();
     } catch (error) {
         console.error('Error loading vouchers:', error);
         availableVouchers = [];
-        // If in local dev, show a sample voucher so selection can be tested
-        const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        if (isLocal) {
-            const today = new Date().toISOString().split('T')[0];
-            availableVouchers = [{ id: 'dev-voucher-1', code: 'DEV5K', description: 'Voucher uji: potongan Rp5.000', amount: 5000, start_date: today, end_date: today, is_active: true }];
-        }
         renderVoucherList();
     }
 }
@@ -211,37 +310,51 @@ function renderVoucherList() {
 function createVoucherElement(voucher) {
     const div = document.createElement('div');
     div.className = 'voucher-item';
-    
-    const endDate = new Date(voucher.end_date).toLocaleDateString('id-ID', {
+
+    const expiredDate = new Date(voucher.expired_date).toLocaleDateString('id-ID', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
     });
 
-    const isSelected = orderData.selectedVoucherId == voucher.id;
+    const isSelected = orderData.selectedVoucherId == voucher.voucher_id;
+    const isOutOfStock = voucher.stok <= 0;
+
+    if (isOutOfStock) {
+        div.classList.add('disabled');
+    }
 
     div.innerHTML = `
-        <input 
-            type="radio" 
-            name="voucher" 
+        <input
+            type="radio"
+            name="voucher"
             class="voucher-radio"
-            data-voucher-id="${voucher.id}"
+            data-voucher-id="${voucher.voucher_id}"
             ${isSelected ? 'checked' : ''}
+            ${isOutOfStock ? 'disabled' : ''}
         >
         <div class="voucher-checkbox"></div>
         <div class="voucher-content">
-            <div class="voucher-code">${voucher.code}</div>
-            <div class="voucher-description">${voucher.description || 'Dapatkan diskon spesial'}</div>
-            <div class="voucher-discount">${voucher.amount ? 'Potongan ' + formatCurrency(voucher.amount) : 'Hemat ' + (voucher.discount_percentage ? voucher.discount_percentage + '%' : '')}</div>
-            <div class="voucher-validity">Berlaku hingga ${endDate}</div>
+            <div class="voucher-code">${voucher.nama_voucher}</div>
+            <div class="voucher-discount">Potongan ${formatCurrency(voucher.potongan)}</div>
+            <div class="voucher-validity">
+                <span>Berlaku hingga ${expiredDate}</span>
+                <span style="margin-left: 0.5rem; color: ${voucher.stok > 5 ? 'var(--success)' : 'var(--warning)'};">• Stok: ${voucher.stok}</span>
+            </div>
         </div>
     `;
     // Reflect selected state visually
     if (isSelected) div.classList.add('selected');
+
+    // Prevent interaction if out of stock
+    if (isOutOfStock) {
+        return div;
+    }
+
     // Toggle selection: clicking the voucher card selects it; clicking again deselects it.
     div.addEventListener('click', (e) => {
         const input = div.querySelector('input[name="voucher"]');
-        const currentlySelected = orderData.selectedVoucherId == voucher.id;
+        const currentlySelected = orderData.selectedVoucherId == voucher.voucher_id;
 
         if (currentlySelected) {
             // Deselect
@@ -267,7 +380,7 @@ function createVoucherElement(voucher) {
             // Prevent the browser's native radio behavior so we can toggle
             e.stopPropagation();
 
-            const currentlySelected = orderData.selectedVoucherId == voucher.id;
+            const currentlySelected = orderData.selectedVoucherId == voucher.voucher_id;
             if (currentlySelected) {
                 inputEl.checked = false;
                 document.querySelectorAll('.voucher-item').forEach(el => el.classList.remove('selected'));
@@ -290,15 +403,31 @@ function renderOrderItems() {
     const container = document.getElementById('itemsContainer');
     container.innerHTML = '';
 
+    console.log('=== RENDERING ORDER ITEMS ===');
+    console.log('Total items:', orderData.items.length);
+    
     orderData.items.forEach((item, index) => {
+        console.log(`\n--- Item ${index}: ${item.name} ---`);
+        console.log('Full item data:', item);
+        console.log('foto_menu:', item.foto_menu);
+        console.log('image_url:', item.image_url);
+        
         const itemElement = createOrderItemElement(item, index);
         container.appendChild(itemElement);
     });
+    
+    console.log('=== RENDERING COMPLETE ===\n');
 }
 
 function createOrderItemElement(item, index) {
     const div = document.createElement('div');
     div.className = 'order-item';
+    
+    console.log(`Creating element for ${item.name}:`, {
+        id: item.id,
+        image_url: item.image_url,
+        hasImage: !!(item.image_url && item.image_url.trim())
+    });
     
     // Prefer explicit item.price (catalog displayed price). If not provided, apply Platoo discount
     // to original_price (if available) as fallback.
@@ -308,12 +437,40 @@ function createOrderItemElement(item, index) {
     const itemPrice = unitPrice;
     const itemTotal = itemPrice * item.quantity;
 
+    // Food emojis sebagai fallback (SAMA dengan catalog.js)
+    const foodEmojis = ['🍕', '🍔', '🍜', '🍱', '🍝', '🥘', '🍛', '🍲', '🥗', '🍖', '🍗', '🥙', '🌮', '🌯', '🥪'];
+    const randomEmoji = foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
+    
+    // Check for photo - PERSIS seperti di catalog.js
+    const photoUrl = item.foto_menu || item.image_url || item.photo_url || item.foto || '';
+    const hasImage = photoUrl && photoUrl.trim() !== '';
+    
+    console.log(`🖼️ Rendering ${item.name}:`, {
+        foto_menu: item.foto_menu,
+        image_url: item.image_url,
+        photoUrl: photoUrl,
+        hasImage: hasImage
+    });
+
     div.innerHTML = `
-        <img 
-            src="${item.image_url || 'https://via.placeholder.com/80'}" 
-            alt="${item.name}"
-            class="item-image"
-        >
+        <div class="item-image-container ${hasImage ? 'has-image' : 'no-image'}">
+            ${hasImage 
+                ? `<img 
+                    src="${photoUrl}" 
+                    alt="${item.name}"
+                    class="item-image"
+                    crossorigin="anonymous"
+                    onerror="console.error('❌ Image failed:', '${photoUrl}'); this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    onload="console.log('✅ Image loaded:', '${item.name}');"
+                >
+                <div class="item-image-fallback" style="display:none;">
+                    <span>${randomEmoji}</span>
+                </div>`
+                : `<div class="item-image-fallback">
+                    <span>${randomEmoji}</span>
+                </div>`
+            }
+        </div>
         <div class="item-details">
             <div class="item-header">
                 <div>
@@ -404,33 +561,48 @@ function updatePriceBreakdown() {
 function renderPickupInfo() {
     const container = document.getElementById('pickupDetails');
     
+    // Restaurant card dengan style dashboard pembeli
+    const emojis = ['🍕', '🍔', '🍜', '🍱', '🍝', '🥘', '🍛', '🍲', '🥗', '🍖'];
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const hasPhoto = orderData.restaurantInfo.photo && orderData.restaurantInfo.photo.trim() !== '';
+    const rating = orderData.restaurantInfo.rating ? orderData.restaurantInfo.rating.toFixed(1) : '0.0';
+    
     container.innerHTML = `
-        <div class="pickup-detail-item">
-            <div class="pickup-icon">🏪</div>
-            <div class="pickup-content">
-                <div class="pickup-label">Nama Restoran</div>
-                <div class="pickup-value">${orderData.restaurantInfo.name || '-'}</div>
+        <div class="restaurant-pickup-card">
+            <div class="pickup-card-image ${hasPhoto ? 'has-photo' : ''}">
+                ${hasPhoto 
+                    ? `<img src="${orderData.restaurantInfo.photo}" alt="${orderData.restaurantInfo.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                       <span style="display:none;">${randomEmoji}</span>`
+                    : `<span>${randomEmoji}</span>`
+                }
+                <div class="pickup-card-badge">
+                    ⭐ ${rating}
+                </div>
             </div>
-        </div>
-        <div class="pickup-detail-item">
-            <div class="pickup-icon">📍</div>
-            <div class="pickup-content">
-                <div class="pickup-label">Alamat Pengambilan</div>
-                <div class="pickup-value">${orderData.restaurantInfo.address || '-'}</div>
-            </div>
-        </div>
-        <div class="pickup-detail-item">
-            <div class="pickup-icon">📞</div>
-            <div class="pickup-content">
-                <div class="pickup-label">Nomor Telepon</div>
-                <div class="pickup-value">${orderData.restaurantInfo.phone || '-'}</div>
-            </div>
-        </div>
-        <div class="pickup-detail-item">
-            <div class="pickup-icon">⏱️</div>
-            <div class="pickup-content">
-                <div class="pickup-label">Waktu Pengambilan</div>
-                <div class="pickup-value">Sesuai jam operasional restoran</div>
+            <div class="pickup-card-content">
+                <div class="pickup-card-header">
+                    <h3 class="pickup-card-title">${orderData.restaurantInfo.name || '-'}</h3>
+                    <div class="pickup-card-location">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 0C5.2 0 3 2.2 3 5c0 3.9 5 11 5 11s5-7.1 5-11c0-2.8-2.2-5-5-5zm0 7.5c-1.4 0-2.5-1.1-2.5-2.5S6.6 2.5 8 2.5s2.5 1.1 2.5 2.5S9.4 7.5 8 7.5z"/>
+                        </svg>
+                        <span>${orderData.restaurantInfo.address || '-'}</span>
+                    </div>
+                </div>
+                <div class="pickup-card-info">
+                    <div class="pickup-card-phone">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328z"/>
+                        </svg>
+                        <span>${orderData.restaurantInfo.phone || '-'}</span>
+                    </div>
+                    <div class="pickup-card-time">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm0 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.5 3v4.5l3 1.5-.5 1-3.5-1.75V4h1z"/>
+                        </svg>
+                        <span>Sesuai jam operasional restoran</span>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -501,27 +673,28 @@ function selectVoucher(voucher) {
         orderData.restaurantDiscount = 0;
         document.getElementById('voucherStatus').innerHTML = '';
     } else {
-        // Select voucher
-        orderData.selectedVoucherId = voucher.id;
-        orderData.selectedVoucher = voucher;
-        
-        // Calculate discount: prefer fixed amount (voucher.amount), otherwise percentage
-        let discountAmount = 0;
-        if (typeof voucher.amount !== 'undefined' && voucher.amount !== null) {
-            discountAmount = Number(voucher.amount);
-        } else if (typeof voucher.discount_percentage !== 'undefined' && voucher.discount_percentage !== null) {
-            discountAmount = Math.round(orderData.subtotal * (voucher.discount_percentage / 100));
+        // Check stock availability
+        if (voucher.stok <= 0) {
+            const statusEl = document.getElementById('voucherStatus');
+            statusEl.className = 'voucher-status error';
+            statusEl.innerHTML = `✗ Voucher <strong>${voucher.nama_voucher}</strong> sudah habis!`;
+            return;
         }
+
+        // Select voucher
+        orderData.selectedVoucherId = voucher.voucher_id;
+        orderData.selectedVoucher = voucher;
+
+        // Use potongan (fixed discount amount) from voucher
+        const discountAmount = Number(voucher.potongan);
 
         // Map voucher discount to 'restaurantDiscount' (Diskon Platoo) per request
         orderData.restaurantDiscount = discountAmount;
         // keep voucherDiscount zero to avoid double-subtraction
         orderData.voucherDiscount = 0;
 
-        // Show success message
-        const statusEl = document.getElementById('voucherStatus');
-        statusEl.className = 'voucher-status success';
-        statusEl.innerHTML = `✓ Voucher <strong>${voucher.code}</strong> berhasil dipilih! Potongan ${formatCurrency(discountAmount)}`;
+        // Clear status message (no success notification needed)
+        document.getElementById('voucherStatus').innerHTML = '';
     }
 
     // Recalculate totals
@@ -554,17 +727,39 @@ async function confirmCheckout() {
 
     try {
         // Create order
-        const orderId = await createOrder();
+        const result = await createOrder();
 
         // Update food stock
         await updateFoodStock();
 
+        // Update voucher stock if voucher was used
+        if (orderData.selectedVoucher) {
+            await updateVoucherStock();
+        }
+
+        // Save order info to localStorage
+        localStorage.setItem('platoo_last_order', JSON.stringify(result.orderIds));
+
         // Clear cart
         localStorage.removeItem('platoo_cart');
 
-        // Show success modal
         showLoadingOverlay(false);
-        showSuccessModal(orderId);
+
+        // Check payment method and redirect accordingly
+        if (orderData.selectedPaymentMethod === 'cash') {
+            // Cash payment - go directly to order status
+            window.location.href = `order-status.html?order=${result.displayId}&payment=cash`;
+        } else {
+            // Virtual Account or E-Wallet - go to payment confirmation page
+            const paymentData = {
+                method: orderData.selectedPaymentMethod,
+                amount: orderData.totalPrice,
+                orderId: result.displayId,
+                orderIds: result.orderIds
+            };
+            localStorage.setItem('platoo_payment_pending', JSON.stringify(paymentData));
+            window.location.href = 'payment-confirmation.html';
+        }
     } catch (error) {
         console.error('Error confirming checkout:', error);
         showLoadingOverlay(false);
@@ -574,43 +769,63 @@ async function confirmCheckout() {
 
 async function createOrder() {
     try {
-        // Prepare order items
-        const orderItems = orderData.items.map(item => ({
-            food_id: item.id,
-            food_name: item.name,
-            quantity: item.quantity,
-            price: item.original_price - (item.original_price * PLATOO_DISCOUNT_RATE),
-            subtotal: (item.original_price - (item.original_price * PLATOO_DISCOUNT_RATE)) * item.quantity
-        }));
-
-        // Create order record
+        console.log('=== Creating order ===');
+        console.log('Current user:', currentUser);
+        console.log('Restaurant ID:', orderData.restaurantId);
+        console.log('Items:', orderData.items);
+        
+        // Pastikan currentUser.id adalah integer, bukan string
+        const userId = parseInt(currentUser?.id) || 1;
+        console.log('User ID (converted to int):', userId, typeof userId);
+        
+        // Get max order_id dari database untuk auto-increment manual
+        const { data: maxOrderData } = await supabase
+            .from('orders')
+            .select('order_id')
+            .order('order_id', { ascending: false })
+            .limit(1);
+        
+        let nextOrderId = 1;
+        if (maxOrderData && maxOrderData.length > 0) {
+            nextOrderId = maxOrderData[0].order_id + 1;
+        }
+        
+        console.log('Next order ID will start from:', nextOrderId);
+        
+        // Insert order untuk setiap item (karena struktur table orders per item)
+        const orderInserts = [];
+        
+        for (const item of orderData.items) {
+            const orderData_single = {
+                order_id: nextOrderId++,
+                catalog_id: parseInt(item.id),
+                id_pembeli: userId,
+                jumlah: parseInt(item.quantity),
+                status_pesanan: 'Sedang Diproses',
+                total_harga: parseInt(Math.round((item.price || item.original_price) * item.quantity))
+            };
+            
+            console.log('Inserting order:', orderData_single);
+            orderInserts.push(orderData_single);
+        }
+        
+        // Insert semua orders sekaligus
         const { data, error } = await supabase
             .from('orders')
-            .insert({
-                buyer_id: currentUser.id,
-                restaurant_id: orderData.restaurantId,
-                items: orderItems,
-                subtotal: orderData.subtotal,
-                discount_from_platoo: orderData.restaurantDiscount,
-                discount_from_voucher: orderData.voucherDiscount,
-                voucher_id: orderData.selectedVoucherId,
-                service_fee: SERVICE_FEE,
-                tax_amount: orderData.taxAmount,
-                total_amount: orderData.totalPrice,
-                payment_method: orderData.selectedPaymentMethod,
-                payment_status: orderData.selectedPaymentMethod === 'cash' ? 'pending' : 'pending',
-                customer_phone: orderData.customerPhone,
-                status: 'pending',
-                notes: '',
-                created_at: new Date().toISOString()
-            })
-            .select('id')
-            .single();
+            .insert(orderInserts);
 
-        if (error) throw error;
-        return data.id;
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+        
+        console.log('✅ Orders created:', data);
+        // Return order info
+        const orderIds = orderInserts.map(o => o.order_id);
+        const displayId = 'ORD-' + orderInserts[0].order_id;
+        return { orderIds, displayId };
     } catch (error) {
-        console.error('Error creating order:', error);
+        console.error('❌ Error creating order:', error);
         throw error;
     }
 }
@@ -619,17 +834,17 @@ async function updateFoodStock() {
     try {
         for (const item of orderData.items) {
             const { data: food } = await supabase
-                .from('foods')
-                .select('quota')
-                .eq('id', item.id)
+                .from('catalog')
+                .select('stok')
+                .eq('catalog_id', item.id)
                 .single();
 
             if (food) {
-                const newQuota = Math.max(0, food.quota - item.quantity);
+                const newStok = Math.max(0, food.stok - item.quantity);
                 await supabase
-                    .from('foods')
-                    .update({ quota: newQuota })
-                    .eq('id', item.id);
+                    .from('catalog')
+                    .update({ stok: newStok })
+                    .eq('catalog_id', item.id);
             }
         }
     } catch (error) {
@@ -637,9 +852,38 @@ async function updateFoodStock() {
     }
 }
 
+async function updateVoucherStock() {
+    try {
+        const voucherId = orderData.selectedVoucher.voucher_id;
+
+        // Get current stock
+        const { data: voucher } = await supabase
+            .from('voucher')
+            .select('stok')
+            .eq('voucher_id', voucherId)
+            .single();
+
+        if (voucher) {
+            const newStok = Math.max(0, voucher.stok - 1);
+            await supabase
+                .from('voucher')
+                .update({ stok: newStok })
+                .eq('voucher_id', voucherId);
+
+            console.log(`Voucher stock updated: ${voucher.stok} -> ${newStok}`);
+        }
+    } catch (error) {
+        console.error('Error updating voucher stock:', error);
+    }
+}
+
 // UI Helper Functions
 
 function showEmptyCart() {
+    // Clear items container
+    document.getElementById('itemsContainer').innerHTML = '';
+
+    // Show empty cart message
     document.getElementById('emptyCart').style.display = 'block';
     document.getElementById('priceBreakdown').style.display = 'none';
     document.getElementById('checkoutActions').style.display = 'none';

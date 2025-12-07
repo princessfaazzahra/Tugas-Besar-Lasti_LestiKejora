@@ -673,6 +673,11 @@ function proceedToCheckout() {
     const qty = cart[itemId];
 
     // Format sesuai kebutuhan checkout.js
+    const photoUrl = item.foto_menu || item.photo_url || item.image_url || '';
+    console.log('=== Saving to cart ===');
+    console.log('Item:', item.nama_makanan);
+    console.log('Photo URL:', photoUrl);
+    
     const cartData = {
         items: [
             {
@@ -683,13 +688,14 @@ function proceedToCheckout() {
                 // original_price = seller's original price if available (used for showing original price)
                 original_price: item.harga_asli || item.harga || 0,
                 quantity: qty,
-                image_url: item.foto_menu || item.photo_url || item.image_url || '',
+                image_url: photoUrl,
                 // Tambahkan field lain jika perlu
             }
         ],
         restaurantId: currentRestaurant?.id_penjual || currentCustomer?.id || currentRestaurant?.id || null
     };
 
+    console.log('Cart data to save:', cartData);
     localStorage.setItem('platoo_cart', JSON.stringify(cartData));
 
     // Ensure a test user exists for local testing so checkout page won't force redirect to login.
@@ -698,7 +704,7 @@ function proceedToCheckout() {
         const testUserKey = 'platoo_test_user';
         const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
         if (isLocal && !localStorage.getItem(testUserKey)) {
-            const devUser = { id: 'dev-user-1', email: 'dev@local.test', full_name: 'Dev Tester' };
+            const devUser = { id: 1, email: 'dev@local.test', full_name: 'Dev Tester' };
             localStorage.setItem(testUserKey, JSON.stringify(devUser));
             console.info('Auto-created dev test user for localhost testing', devUser);
         }
