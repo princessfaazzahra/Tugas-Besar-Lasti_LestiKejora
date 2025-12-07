@@ -95,7 +95,7 @@ async function loginPembeli(username, password) {
     
     // Simpan data user ke localStorage
     localStorage.setItem('platoo_user', JSON.stringify({
-        id: data.id,
+        id: data.id_pembeli,
         nama: data.nama,
         username: data.username,
         role: 'pembeli'

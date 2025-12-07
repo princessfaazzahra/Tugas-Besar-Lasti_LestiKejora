@@ -84,8 +84,18 @@ async function loadRestaurants() {
             throw error;
         }
         
-        allRestaurants = restaurants || [];
+        // Sort: Restaurants dengan ads true tampil paling atas, sisanya by id
+        allRestaurants = (restaurants || []).sort((a, b) => {
+            // Priority 1: ads (true first)
+            if (a.ads && !b.ads) return -1;
+            if (!a.ads && b.ads) return 1;
+            
+            // Priority 2: By id_penjual (ascending)
+            return a.id_penjual - b.id_penjual;
+        });
+        
         console.log('Total restaurants loaded:', allRestaurants.length);
+        console.log('Ads restaurants:', allRestaurants.filter(r => r.ads).length);
         
         loadingState.style.display = 'none';
         
@@ -127,6 +137,11 @@ function createRestaurantCard(restaurant) {
     const card = document.createElement('div');
     card.className = 'restaurant-card';
     
+    // Add special class for ads restaurants
+    if (restaurant.ads) {
+        card.classList.add('restaurant-card-ads');
+    }
+    
     card.onclick = () => viewRestaurantCatalog(restaurant.id_penjual);
     
     // Use restaurant photo if available, otherwise use emoji
@@ -143,6 +158,7 @@ function createRestaurantCard(restaurant) {
                    <span style="display:none;">${randomEmoji}</span>`
                 : `<span>${randomEmoji}</span>`
             }
+            ${restaurant.ads ? '<div class="ads-badge">Ad</div>' : ''}
             <div class="card-badge">
                 ⭐ ${rating}
             </div>
@@ -196,13 +212,22 @@ function filterRestaurants(searchTerm = '') {
             const rate = restaurant.rate || 0;
             return rate >= 4.5;
         });
-        // Sort by rating descending (highest first)
-        filtered.sort((a, b) => (b.rate || 0) - (a.rate || 0));
-    } else if (currentFilter === 'available') {
-        // For now, show all restaurants as available
-        // You can add logic here if you have a 'stok' field
-        filtered = filtered;
     }
+    
+    // Always sort with Ads restaurants first
+    filtered.sort((a, b) => {
+        // Priority 1: ads (true first)
+        if (a.ads && !b.ads) return -1;
+        if (!a.ads && b.ads) return 1;
+        
+        // Priority 2: For popular filter, sort by rating
+        if (currentFilter === 'popular') {
+            return (b.rate || 0) - (a.rate || 0);
+        }
+        
+        // Priority 3: Default - by id_penjual
+        return a.id_penjual - b.id_penjual;
+    });
     
     displayRestaurants(filtered);
 }
