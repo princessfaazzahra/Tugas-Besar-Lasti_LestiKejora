@@ -10,6 +10,9 @@ let paymentMethod = 'cash'; // default
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    // Check and display email result
+    checkEmailResult();
+    
     await loadOrderStatus();
     
     // Setup refresh button
@@ -18,6 +21,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         showNotification('Status pesanan diperbarui', 'success');
     });
 });
+
+// Check email sending result
+function checkEmailResult() {
+    const emailResult = localStorage.getItem('platoo_last_email_result');
+    if (emailResult) {
+        try {
+            const result = JSON.parse(emailResult);
+            console.log('='.repeat(60));
+            console.log('📧 EMAIL NOTIFICATION RESULT');
+            console.log('='.repeat(60));
+            console.log('Status:', result.sent ? '✅ Email terkirim' : '❌ Email gagal terkirim');
+            console.log('Order ID:', result.orderId);
+            console.log('User Email:', result.userEmail || 'N/A');
+            console.log('Email Service Loaded:', result.emailServiceLoaded ? 'Yes' : 'No');
+            if (result.error) {
+                console.log('Error:', result.error);
+            }
+            console.log('Timestamp:', new Date(result.timestamp).toLocaleString('id-ID'));
+            console.log('='.repeat(60));
+            
+            // Don't clear yet - keep for debugging
+            // localStorage.removeItem('platoo_last_email_result');
+        } catch (error) {
+            console.error('Error parsing email result:', error);
+        }
+    } else {
+        console.log('ℹ️ No email notification sent (or not from cash payment)');
+    }
+    
+    // Check voucher update result
+    const voucherResult = localStorage.getItem('platoo_last_voucher_result');
+    if (voucherResult) {
+        try {
+            const result = JSON.parse(voucherResult);
+            console.log('\n' + '='.repeat(60));
+            console.log('🎟️ VOUCHER UPDATE RESULT');
+            console.log('='.repeat(60));
+            console.log('Status:', result.updated ? '✅ Voucher stok berhasil dikurangi' : '❌ Voucher stok GAGAL dikurangi');
+            console.log('Voucher ID:', result.voucherId);
+            console.log('Voucher Name:', result.voucherName);
+            console.log('Payment Method:', result.paymentMethod);
+            if (result.error) {
+                console.log('Error:', result.error);
+            }
+            console.log('Timestamp:', new Date(result.timestamp).toLocaleString('id-ID'));
+            console.log('='.repeat(60));
+            
+            // Don't clear yet - keep for debugging
+            // localStorage.removeItem('platoo_last_voucher_result');
+        } catch (error) {
+            console.error('Error parsing voucher result:', error);
+        }
+    } else {
+        console.log('ℹ️ No voucher was used in this order');
+    }
+}
 
 function goToRestaurant() {
     if (!orderData || !orderData.restaurant) {

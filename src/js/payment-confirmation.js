@@ -159,12 +159,48 @@ async function confirmPayment() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // KURANGI STOK DI DATABASE SETELAH KONFIRMASI PEMBAYARAN
+    let voucherUpdateResult = null;
     try {
         await updateFoodStockAfterPayment();
-        await updateVoucherStockAfterPayment();
+        voucherUpdateResult = await updateVoucherStockAfterPayment();
+        console.log('💾 Voucher update result (digital payment):', voucherUpdateResult);
     } catch (error) {
         console.error('Error updating stock:', error);
         // Tetap lanjut redirect meskipun ada error (bisa dihandle lebih baik di production)
+    }
+    
+    // Save voucher result to localStorage for debugging
+    if (paymentData.voucher) {
+        localStorage.setItem('platoo_last_voucher_result', JSON.stringify({
+            updated: voucherUpdateResult?.success || false,
+            voucherId: paymentData.voucher.voucher_id,
+            voucherName: paymentData.voucher.nama_voucher,
+            error: voucherUpdateResult?.error || null,
+            timestamp: new Date().toISOString(),
+            paymentMethod: paymentData.method
+        }));
+    }
+
+    // SEND EMAIL CONFIRMATION
+    let emailResult = null;
+    try {
+        emailResult = await sendPaymentConfirmationEmail();
+    } catch (error) {
+        console.error('Error sending email:', error);
+        // Continue even if email fails
+    }
+    
+    // Save email result untuk debugging
+    if (emailResult) {
+        const userData = JSON.parse(localStorage.getItem('platoo_user') || '{}');
+        localStorage.setItem('platoo_last_email_result', JSON.stringify({
+            sent: emailResult?.success || false,
+            error: emailResult?.error || null,
+            timestamp: new Date().toISOString(),
+            orderId: paymentData.orderId,
+            userEmail: userData.email,
+            emailServiceLoaded: typeof sendOrderConfirmationEmail === 'function'
+        }));
     }
 
     // BARU HAPUS CART SETELAH PAYMENT CONFIRMED
@@ -234,34 +270,64 @@ async function updateFoodStockAfterPayment() {
 }
 
 async function updateVoucherStockAfterPayment() {
+    console.log('🎟️ Checking voucher data:', paymentData.voucher);
+    
     if (!paymentData.voucher) {
-        console.log('No voucher to update');
+        console.log('ℹ️ No voucher to update');
         return;
     }
 
     try {
         console.log('🔄 Updating voucher stock after payment confirmation...');
         const voucherId = paymentData.voucher.voucher_id;
+        console.log('Voucher ID to update:', voucherId);
 
         // Get current stock
-        const { data: voucher } = await supabase
+        const { data: voucher, error: fetchError } = await supabase
             .from('voucher')
             .select('stok')
             .eq('voucher_id', voucherId)
             .single();
 
+        if (fetchError) {
+            console.error('❌ Error fetching voucher:', fetchError);
+            throw fetchError;
+        }
+
         if (voucher) {
-            const newStok = Math.max(0, voucher.stok - 1);
-            await supabase
+            console.log('Current voucher stock:', voucher.stok);
+            const oldStok = voucher.stok;
+            const newStok = Math.max(0, oldStok - 1);
+            
+            const { data: updateData, error: updateError } = await supabase
                 .from('voucher')
                 .update({ stok: newStok })
-                .eq('voucher_id', voucherId);
+                .eq('voucher_id', voucherId)
+                .select();
 
-            console.log(`✅ Updated voucher stock: ${voucher.stok} → ${newStok}`);
+            console.log('🔍 UPDATE RESPONSE (Digital Payment):');
+            console.log('- updateData:', JSON.stringify(updateData, null, 2));
+            console.log('- updateError:', JSON.stringify(updateError, null, 2));
+
+            if (updateError) {
+                console.error('❌ Error updating voucher:', updateError);
+                return { success: false, error: updateError, oldStock: oldStok, newStock: newStok };
+            }
+
+            if (!updateData || updateData.length === 0) {
+                console.error('⚠️ WARNING: No rows updated - possible RLS issue');
+                return { success: false, error: 'No rows updated - possible RLS issue', oldStock: oldStok, newStock: newStok };
+            }
+
+            console.log(`✅ Voucher stock updated: ${oldStok} → ${newStok}`);
+            return { success: true, oldStock: oldStok, newStock: newStok, updatedRow: updateData[0] };
+        } else {
+            console.warn('⚠️ Voucher not found in database');
+            return { success: false, error: 'Voucher not found' };
         }
     } catch (error) {
         console.error('❌ Error updating voucher stock:', error);
-        throw error;
+        return { success: false, error: error.message };
     }
 }
 
@@ -339,6 +405,83 @@ function confirmCancel() {
     // Agar user bisa ganti metode pembayaran
     console.log('Redirecting back to checkout page');
     window.location.href = 'checkout.html';
+}
+
+// Email Functions
+async function sendPaymentConfirmationEmail() {
+    try {
+        console.log('📧 Sending payment confirmation email...');
+        
+        // Initialize EmailJS
+        if (typeof initEmailJS === 'function') {
+            initEmailJS();
+        }
+        
+        // Get user data
+        const userData = JSON.parse(localStorage.getItem('platoo_user') || '{}');
+        
+        // Fetch email from pembeli table
+        const userId = userData.id || userData.id_pembeli || userData.pembeli_id;
+        if (userId) {
+            const { data: pembeliData, error: pembeliError } = await supabase
+                .from('pembeli')
+                .select('email, nama')
+                .eq('id_pembeli', userId)
+                .single();
+            
+            if (!pembeliError && pembeliData) {
+                userData.email = pembeliData.email;
+                userData.nama = pembeliData.nama;
+                console.log('✅ Email fetched from database:', userData.email);
+            }
+        }
+        
+        // Check if user has email
+        if (!userData.email) {
+            console.warn('⚠️ User has no email address, skipping email send');
+            return;
+        }
+        
+        // Prepare email data dengan format yang sama seperti checkout
+        const emailData = {
+            customerEmail: userData.email,
+            customerName: userData.nama || userData.username,
+            orderId: paymentData.orderId,
+            restaurantName: paymentData.restaurantInfo?.name || paymentData.restaurantInfo?.nama_restoran || 'Restoran',
+            restaurantAddress: paymentData.restaurantInfo?.address || paymentData.restaurantInfo?.alamat || '-',
+            restaurantPhone: paymentData.restaurantInfo?.phone || paymentData.restaurantInfo?.nomor_telepon || '-',
+            items: (paymentData.items || []).map(item => ({
+                nama_menu: item.name || item.nama_menu || item.nama_makanan,
+                quantity: item.quantity,
+                harga: item.price || item.harga,
+                gambar_menu: item.photo_url || item.image_url || item.foto_menu || item.foto || item.gambar_menu,
+                subtotal: (item.price || item.harga) * item.quantity
+            })),
+            totalPrice: paymentData.amount,
+            paymentMethod: paymentData.method
+        };
+        
+        console.log('📧 Full email data:', emailData);
+        
+        // Send email
+        if (typeof sendOrderConfirmationEmail === 'function') {
+            const result = await sendOrderConfirmationEmail(emailData);
+            if (result.success) {
+                console.log('✅ Email sent successfully!');
+                return result;
+            } else {
+                console.warn('⚠️ Email send failed:', result.error);
+                return result;
+            }
+        } else {
+            console.warn('⚠️ Email service not loaded');
+            return { success: false, error: 'Email service not loaded' };
+        }
+    } catch (error) {
+        console.error('❌ Error sending email:', error);
+        // Don't throw - email is optional
+        return { success: false, error: error.message };
+    }
 }
 
 // Make functions globally available

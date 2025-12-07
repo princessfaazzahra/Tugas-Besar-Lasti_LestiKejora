@@ -51,6 +51,24 @@ async function initializeCheckout() {
     try {
         currentUser = JSON.parse(userDataJson);
         console.log('✅ User logged in for checkout:', currentUser);
+        
+        // Fetch email from pembeli table
+        const userId = currentUser.id || currentUser.id_pembeli || currentUser.pembeli_id;
+        if (userId) {
+            const { data: pembeliData, error: pembeliError } = await supabase
+                .from('pembeli')
+                .select('email, nama')
+                .eq('id_pembeli', userId)
+                .single();
+            
+            if (!pembeliError && pembeliData) {
+                currentUser.email = pembeliData.email;
+                currentUser.nama = pembeliData.nama;
+                console.log('✅ Email fetched from database:', currentUser.email);
+            } else {
+                console.warn('⚠️ Failed to fetch email from pembeli table:', pembeliError);
+            }
+        }
     } catch (err) {
         console.error('Invalid user data in localStorage:', err);
         localStorage.removeItem('platoo_user');
@@ -826,9 +844,41 @@ async function confirmCheckout() {
             await updateFoodStock();
 
             // Update voucher stock if voucher was used
+            let voucherUpdateResult = null;
             if (orderData.selectedVoucher) {
-                await updateVoucherStock();
+                console.log('⏳ About to update voucher stock...');
+                voucherUpdateResult = await updateVoucherStock();
+                console.log('💾 Voucher update result:', voucherUpdateResult);
             }
+            
+            // Save voucher result to localStorage for debugging
+            if (orderData.selectedVoucher) {
+                const debugInfo = {
+                    updated: voucherUpdateResult?.success || false,
+                    voucherId: orderData.selectedVoucher.voucher_id,
+                    voucherName: orderData.selectedVoucher.nama_voucher,
+                    oldStock: voucherUpdateResult?.oldStock,
+                    newStock: voucherUpdateResult?.newStock,
+                    error: voucherUpdateResult?.error || null,
+                    timestamp: new Date().toISOString(),
+                    paymentMethod: 'cash'
+                };
+                console.log('📝 Saving to localStorage:', debugInfo);
+                localStorage.setItem('platoo_last_voucher_result', JSON.stringify(debugInfo));
+            }
+
+            // Send email confirmation
+            const emailResult = await sendOrderEmail(result.displayId);
+            
+            // Save email result untuk debugging
+            localStorage.setItem('platoo_last_email_result', JSON.stringify({
+                sent: emailResult?.success || false,
+                error: emailResult?.error || null,
+                timestamp: new Date().toISOString(),
+                orderId: result.displayId,
+                userEmail: currentUser.email,
+                emailServiceLoaded: typeof sendOrderConfirmationEmail === 'function'
+            }));
 
             // Save order info to localStorage
             localStorage.setItem('platoo_last_order', JSON.stringify(result.orderIds));
@@ -995,27 +1045,70 @@ async function updateFoodStock() {
 }
 
 async function updateVoucherStock() {
+    console.log('🎟️ Checking voucher data for cash payment:', orderData.selectedVoucher);
+    
+    if (!orderData.selectedVoucher) {
+        console.log('No voucher selected');
+        return;
+    }
+    
     try {
         const voucherId = orderData.selectedVoucher.voucher_id;
+        console.log('Updating voucher stock for voucher ID:', voucherId);
 
         // Get current stock
-        const { data: voucher } = await supabase
+        const { data: voucher, error: fetchError } = await supabase
             .from('voucher')
             .select('stok')
             .eq('voucher_id', voucherId)
             .single();
 
+        if (fetchError) {
+            console.error('❌ Error fetching voucher:', fetchError);
+            throw fetchError;
+        }
+
         if (voucher) {
-            const newStok = Math.max(0, voucher.stok - 1);
-            await supabase
+            console.log('Current voucher stock:', voucher.stok);
+            const oldStok = voucher.stok;
+            const newStok = Math.max(0, oldStok - 1);
+            console.log('Calculated new stock:', newStok);
+            console.log('Executing UPDATE query with:', { stok: newStok, voucher_id: voucherId });
+            
+            const { data: updateData, error: updateError } = await supabase
                 .from('voucher')
                 .update({ stok: newStok })
-                .eq('voucher_id', voucherId);
+                .eq('voucher_id', voucherId)
+                .select();
 
-            console.log(`Voucher stock updated: ${voucher.stok} -> ${newStok}`);
+            console.log('🔍 DETAILED UPDATE RESPONSE:');
+            console.log('- updateData:', JSON.stringify(updateData, null, 2));
+            console.log('- updateError:', JSON.stringify(updateError, null, 2));
+            console.log('- Data length:', updateData?.length);
+            console.log('- Updated row:', updateData?.[0]);
+
+            if (updateError) {
+                console.error('❌ Error updating voucher:', updateError);
+                return { success: false, error: updateError, oldStock: oldStok, newStock: newStok };
+            }
+
+            // Check if update actually modified a row
+            if (!updateData || updateData.length === 0) {
+                console.error('⚠️ WARNING: Update executed but NO rows were modified!');
+                console.error('This usually means RLS policy is blocking the update.');
+                return { success: false, error: 'No rows updated - possible RLS issue', oldStock: oldStok, newStock: newStok };
+            }
+
+            console.log(`✅ Voucher stock updated (cash payment): ${oldStok} → ${newStok}`);
+            console.log('Updated data from database:', updateData);
+            return { success: true, oldStock: oldStok, newStock: newStok, updatedRow: updateData[0] };
+        } else {
+            console.warn('⚠️ Voucher not found in database');
+            return { success: false, error: 'Voucher not found' };
         }
     } catch (error) {
-        console.error('Error updating voucher stock:', error);
+        console.error('❌ Error updating voucher stock:', error);
+        return { success: false, error: error.message };
     }
 }
 
@@ -1094,6 +1187,74 @@ function showNotification(message, type = 'info') {
             notification.remove();
         }, 300);
     }, 3000);
+}
+
+// Email Functions
+
+async function sendOrderEmail(orderId) {
+    try {
+        console.log('📧 Sending order confirmation email...');
+        
+        // Initialize EmailJS if not already initialized
+        if (typeof initEmailJS === 'function') {
+            initEmailJS();
+        }
+        
+        // Check if user has email
+        if (!currentUser.email) {
+            console.warn('⚠️ User has no email address, skipping email send');
+            return;
+        }
+        
+        // Prepare email data
+        const emailData = {
+            customerEmail: currentUser.email,
+            customerName: currentUser.nama || currentUser.username,
+            orderId: orderId,
+            restaurantName: orderData.restaurantInfo.name || orderData.restaurantInfo.nama_restoran,
+            restaurantAddress: orderData.restaurantInfo.address || orderData.restaurantInfo.alamat,
+            restaurantPhone: orderData.restaurantInfo.phone || orderData.restaurantInfo.nomor_telepon,
+            items: orderData.items.map(item => ({
+                nama_menu: item.name || item.nama_menu || item.nama_makanan,
+                quantity: item.quantity,
+                harga: item.price || item.harga,
+                gambar_menu: item.photo_url || item.image_url || item.foto_menu || item.foto || item.gambar_menu,
+                subtotal: (item.price || item.harga) * item.quantity
+            })),
+            totalPrice: orderData.totalPrice,
+            paymentMethod: orderData.selectedPaymentMethod
+        };
+        
+        console.log('📧 Full email data with items:', emailData);
+        
+        console.log('📧 Email data prepared:', {
+            to: emailData.customerEmail,
+            name: emailData.customerName,
+            orderId: emailData.orderId,
+            itemCount: emailData.items.length
+        });
+        
+        console.log('Email data prepared:', emailData);
+        
+        // Send email using email-service.js
+        if (typeof sendOrderConfirmationEmail === 'function') {
+            const result = await sendOrderConfirmationEmail(emailData);
+            if (result.success) {
+                console.log('✅ Email sent successfully!');
+                return result;
+            } else {
+                console.warn('⚠️ Email send failed:', result.error);
+                return result;
+            }
+        } else {
+            console.warn('⚠️ Email service not loaded');
+            return { success: false, error: 'Email service not loaded' };
+        }
+    } catch (error) {
+        console.error('❌ Error sending email:', error);
+        // Don't throw error - email is optional, order should still proceed
+        return { success: false, error: error.message };
+    }
 }
 
 // Utility Functions
