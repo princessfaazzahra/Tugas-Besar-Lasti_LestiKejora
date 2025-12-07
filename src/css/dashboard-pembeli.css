@@ -379,11 +379,6 @@ body {
     box-shadow: 0 12px 40px rgba(107, 17, 153, 0.2);
 }
 
-/* Ads Restaurant Card - No special styling, just the badge */
-.restaurant-card-ads {
-    /* Same as normal card, no special border or effects */
-}
-
 .card-image {
     width: 100%;
     height: 200px;
