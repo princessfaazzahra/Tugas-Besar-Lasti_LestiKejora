@@ -27,9 +27,8 @@
         </div>
         
         <div class="container">
-
             <div class="top-actions">
-                <a href="food-form.html" class="btn-add">+ Tambah Makanan Baru</a>
+                <a href="food-add.html" class="btn-add">+ Tambah Makanan Baru</a>
             </div>
 
             <table class="table" aria-describedby="Daftar makanan milik restoran">
@@ -46,6 +45,19 @@
             </table>
         </div>
     </main>
-    <script src="../js/catalog.js"></script>
+
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon"></div>
+            <h3 id="modalTitle">Title</h3>
+            <p id="modalMessage">Message</p>
+            <div class="modal-buttons" id="modalButtons">
+                <button class="modal-btn modal-btn-confirm" id="modalConfirm">OK</button>
+                <button class="modal-btn modal-btn-cancel" id="modalCancel">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/food-catalog.js"></script>
 </body>
 </html>

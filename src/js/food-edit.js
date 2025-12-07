@@ -3,14 +3,68 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function showModal(title, message, type = 'success', showCancel = false) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalConfirm = document.getElementById('modalConfirm');
+        const modalCancel = document.getElementById('modalCancel');
+        
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        
+        modalIcon.className = 'modal-icon ' + type;
+        
+        if (showCancel) {
+            modalCancel.style.display = 'block';
+        } else {
+            modalCancel.style.display = 'none';
+        }
+        
+        modal.classList.add('show');
+        
+        modalConfirm.onclick = () => {
+            modal.classList.remove('show');
+            resolve(true);
+        };
 
-function getCatalogIdFromUrl(){
+        modalCancel.onclick = () => {
+            modal.classList.remove('show');
+            resolve(false);
+        };
+        
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                resolve(false);
+            }
+        };
+    });
+}
+
+function showAlert(message, type = 'success') {
+    const titles = {
+        success: 'Berhasil!',
+        error: 'Gagal!',
+        warning: 'Peringatan!',
+        question: 'Konfirmasi'
+    };
+    return showModal(titles[type] || 'Informasi', message, type, false);
+}
+
+function showConfirm(message, title = 'Konfirmasi') {
+    return showModal(title, message, 'question', true);
+}
+
+async function getCatalogIdFromUrl(){
     const urlParams = new URLSearchParams(window.location.search);
     const catalogId = urlParams.get('id');
     
     if (!catalogId) {
-        alert('ID makanan tidak ditemukan!');
-        window.location.href = 'catalog.html';
+        await showAlert('ID makanan tidak ditemukan!', 'error');
+        window.location.href = 'food-catalog.html';
         return null;
     }
     
@@ -31,18 +85,16 @@ async function fetchFoodData(catalogId) {
         
     } catch (error) {
         console.error('Error fetching food data:', error);
-        alert('Gagal memuat data makanan.');
+        await showAlert('Gagal memuat data makanan.', 'error');
         return null;
     }
 }
 
 
 function populateForm(foodData) {
-    // Fill semua form fields
     document.getElementById('catalog_id').value = foodData.catalog_id;
     document.getElementById('resto_id').value = foodData.resto_id;
     document.getElementById('nama_makanan').value = foodData.nama_makanan;
-    document.getElementById('deskripsi').value = foodData.deskripsi || '';
     document.getElementById('stok').value = foodData.stok;
     document.getElementById('harga').value = foodData.harga;
 }
@@ -74,7 +126,6 @@ async function handleSubmit(e) {
     e.preventDefault();
     
     try {
-        // Get form values
         const catalogId = document.getElementById('catalog_id').value;
         const restoId = document.getElementById('resto_id').value;
         const namaMakanan = document.getElementById('nama_makanan').value;
@@ -82,9 +133,8 @@ async function handleSubmit(e) {
         const harga = parseInt(document.getElementById('harga').value);
         const fotoFile = document.getElementById('foto').files[0];
         
-        // Validasi - allow stok 0
         if (!namaMakanan.trim() || isNaN(stok) || stok < 0 || isNaN(harga) || harga <= 0) {
-            alert('Mohon lengkapi semua field yang wajib dengan benar!');
+            await showAlert('Mohon lengkapi semua field yang wajib dengan benar!', 'warning');
             return;
         }
         
@@ -118,13 +168,13 @@ async function handleSubmit(e) {
         
         if (error) throw error;
         
-        alert('Makanan berhasil diupdate!');
+        await showAlert('Makanan berhasil diupdate!', 'success');
 
-        window.location.href = 'catalog.html';
+        window.location.href = 'food-catalog.html';
         
     } catch (error) {
         console.error('Error updating food:', error);
-        alert('Gagal mengupdate makanan. Silakan coba lagi.');
+        await showAlert('Gagal mengupdate makanan. Silakan coba lagi.', 'error');
         
         const submitBtn = document.querySelector('.btn-submit');
         submitBtn.textContent = 'Update';
@@ -137,18 +187,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('Food edit page loaded');
     
     // Get catalog ID from URL
-    const catalogId = getCatalogIdFromUrl();
+    const catalogId = await getCatalogIdFromUrl();
     if (!catalogId) return;
     
     // Fetch existing data
     const foodData = await fetchFoodData(catalogId);
     if (!foodData) {
-        alert('Data makanan tidak ditemukan!');
-        window.location.href = 'catalog.html';
+        await showAlert('Data makanan tidak ditemukan!', 'error');
+        window.location.href = 'food-catalog.html';
         return;
     }
     
-    // Populate form with existing data
     populateForm(foodData);
     
     // Setup form submit handler

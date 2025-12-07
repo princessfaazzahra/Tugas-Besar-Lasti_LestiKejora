@@ -11,12 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- Main Content -->
     <main class="main-content">
         <div class="header-section">
             <div class="container">
-                <!-- Back Button -->
-                <button class="btn-back" onclick="window.location.href='catalog.html'">
+                <button class="btn-back" onclick="window.location.href='food-catalog.html'">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
@@ -58,6 +56,20 @@
             </form>
         </div>
     </main>
-    <script src="../js/food-form.js"></script>
+
+    <!-- Custom Modal -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon"></div>
+            <h3 id="modalTitle">Title</h3>
+            <p id="modalMessage">Message</p>
+            <div class="modal-buttons" id="modalButtons">
+                <button class="modal-btn modal-btn-confirm" id="modalConfirm">OK</button>
+                <button class="modal-btn modal-btn-cancel" id="modalCancel">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/food-add.js"></script>
 </body>
 </html>

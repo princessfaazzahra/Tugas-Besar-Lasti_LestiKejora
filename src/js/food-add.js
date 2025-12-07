@@ -3,12 +3,67 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function showModal(title, message, type = 'success', showCancel = false) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalConfirm = document.getElementById('modalConfirm');
+        const modalCancel = document.getElementById('modalCancel');
+        
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        
+        modalIcon.className = 'modal-icon ' + type;
+        
+        if (showCancel) {
+            modalCancel.style.display = 'block';
+        } else {
+            modalCancel.style.display = 'none';
+        }
+        
+        modal.classList.add('show');
+        
+        modalConfirm.onclick = () => {
+            modal.classList.remove('show');
+            resolve(true);
+        };
+        
+        modalCancel.onclick = () => {
+            modal.classList.remove('show');
+            resolve(false);
+        };
+        
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                resolve(false);
+            }
+        };
+    });
+}
+
+function showAlert(message, type = 'success') {
+    const titles = {
+        success: 'Berhasil!',
+        error: 'Gagal!',
+        warning: 'Peringatan!',
+        question: 'Konfirmasi'
+    };
+    return showModal(titles[type] || 'Informasi', message, type, false);
+}
+
+function showConfirm(message, title = 'Konfirmasi') {
+    return showModal(title, message, 'question', true);
+}
+
 async function getCurrentRestoId() {
     const userData = JSON.parse(localStorage.getItem('platoo_user'));
     const restoId = userData.id;
     
     if (!restoId) {
-        alert('Sesi habis atau belum login. Silakan login kembali.');
+        await showAlert('Sesi habis atau belum login. Silakan login kembali.', 'warning');
         window.location.href = 'login-penjual.html';
         return null;
     }
@@ -48,28 +103,23 @@ async function handleSubmit(e) {
         const harga = parseInt(document.getElementById('harga').value);
         const fotoFile = document.getElementById('foto').files[0];
         
-        // Validasi
         if (!namaMakanan.trim() || isNaN(stok) || stok < 0 || isNaN(harga) || harga <= 0) {
-            alert('Mohon lengkapi semua field yang wajib!');
+            await showAlert('Mohon lengkapi semua field yang wajib!', 'warning');
             return;
         }
         
-        // Get resto_id
         const restoId = await getCurrentRestoId();
         
-        // Show loading state
         const submitBtn = document.querySelector('.btn-submit');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Menyimpan...';
         submitBtn.disabled = true;
         
-        // Upload foto
         if(fotoFile) {
             console.log('Uploading image...');
             fotoUrl = await uploadImage(fotoFile, restoId);
         }
         
-        // Insert data ke tabel catalog
         console.log('Inserting to database...');
         const { data, error } = await supabase
             .from('catalog')
@@ -85,17 +135,14 @@ async function handleSubmit(e) {
         
         if (error) throw error;
         
-        // Success!
-        alert('Makanan berhasil ditambahkan!');
+        await showAlert('Makanan berhasil ditambahkan!', 'success');
         
-        // Redirect ke catalog
-        window.location.href = 'catalog.html';
+        window.location.href = 'food-catalog.html';
         
     } catch (error) {
         console.error('Error submitting form:', error);
-        alert('Gagal menambahkan makanan. Silakan coba lagi.');
+        await showAlert('Gagal menambahkan makanan. Silakan coba lagi.', 'error');
         
-        // Reset button
         const submitBtn = document.querySelector('.btn-submit');
         submitBtn.textContent = 'Tambah';
         submitBtn.disabled = false;
@@ -105,7 +152,6 @@ async function handleSubmit(e) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Food form page loaded');
     
-    // Setup form submit handler
     const form = document.getElementById('foodForm');
     form.addEventListener('submit', handleSubmit);
 });
