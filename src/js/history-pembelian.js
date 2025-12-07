@@ -50,16 +50,33 @@ async function loadOrderHistory() {
             throw error;
         }
         
-        loadingState.style.display = 'none';
-        
         if (!orders || orders.length === 0) {
+            loadingState.style.display = 'none';
             console.log('No orders found');
             emptyState.style.display = 'flex';
             return;
         }
         
-        // Group orders by order_id
-        const groupedOrders = groupOrdersByOrderId(orders);
+        // Fetch catalog data untuk nama menu
+        const catalogIds = [...new Set(orders.map(o => o.catalog_id))];
+        const { data: catalogItems, error: catalogError } = await supabase
+            .from('catalog')
+            .select('catalog_id, nama_makanan');
+        
+        console.log('Catalog items:', catalogItems);
+        
+        // Buat map catalog_id -> nama_makanan
+        const catalogMap = {};
+        if (catalogItems) {
+            catalogItems.forEach(item => {
+                catalogMap[item.catalog_id] = item.nama_makanan;
+            });
+        }
+        
+        loadingState.style.display = 'none';
+        
+        // Group orders by order_id dengan nama menu dari catalog
+        const groupedOrders = groupOrdersByOrderId(orders, catalogMap);
         console.log('Grouped orders:', groupedOrders);
         
         // Display orders
@@ -73,7 +90,7 @@ async function loadOrderHistory() {
     }
 }
 
-function groupOrdersByOrderId(orders) {
+function groupOrdersByOrderId(orders, catalogMap) {
     const grouped = {};
     
     orders.forEach(order => {
@@ -91,15 +108,20 @@ function groupOrdersByOrderId(orders) {
             };
         }
         
+        // Ambil nama menu dari catalogMap
+        const namaMenu = catalogMap[order.catalog_id] || `Menu ID ${order.catalog_id}`;
+        const harga = order.total_harga || 0;
+        const quantity = order.jumlah || order.quantity || 1;
+        
         grouped[orderId].items.push({
             catalog_id: order.catalog_id,
-            nama_menu: order.nama_menu,
-            quantity: order.quantity,
-            harga: order.harga,
-            subtotal: order.harga * order.quantity
+            nama_menu: namaMenu,
+            quantity: quantity,
+            harga: harga,
+            subtotal: harga
         });
         
-        grouped[orderId].total += order.harga * order.quantity;
+        grouped[orderId].total += harga;
     });
     
     // Apply voucher discount if exists
@@ -150,11 +172,17 @@ function createOrderCard(order) {
             <div class="order-info">
                 <h3>Order #${order.order_id}</h3>
                 <div class="order-date">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px;">
+                        <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5z"/>
+                    </svg>
                     ${order.items.length} item${order.items.length > 1 ? 's' : ''}
                 </div>
             </div>
-            <div class="order-status ${statusClass}">
-                ${statusText}
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 600;">ID: ${order.order_id}</div>
+                <div class="order-status ${statusClass}">
+                    ${statusText}
+                </div>
             </div>
         </div>
         <div class="order-items">
@@ -165,7 +193,7 @@ function createOrderCard(order) {
                 <span class="total-label">Total Pembayaran</span>
                 <span class="total-amount">Rp ${formatPrice(order.total)}</span>
             </div>
-            <button class="btn-detail" onclick="event.stopPropagation(); viewOrderDetail(${order.order_id})">
+            <button class="btn-detail">
                 Lihat Detail →
             </button>
         </div>

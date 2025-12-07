@@ -38,8 +38,10 @@ async function loadOrderStatus() {
     try {
         // Get order IDs from URL parameter or localStorage
         const urlParams = new URLSearchParams(window.location.search);
-        const orderIdParam = urlParams.get('order');
+        const orderIdParam = urlParams.get('orderId') || urlParams.get('order');
         const paymentParam = urlParams.get('payment');
+        
+        console.log('URL params:', { orderIdParam, paymentParam, fullUrl: window.location.href });
 
         // Get payment method from URL or localStorage
         if (paymentParam) {
@@ -57,9 +59,15 @@ async function loadOrderStatus() {
         console.log('Payment method:', paymentMethod);
 
         if (orderIdParam) {
-            // Parse order ID (format: ORD-42)
-            const numericId = parseInt(orderIdParam.replace('ORD-', ''));
+            // Parse order ID - bisa format ORD-42 atau langsung angka 42
+            let numericId;
+            if (typeof orderIdParam === 'string' && orderIdParam.includes('ORD-')) {
+                numericId = parseInt(orderIdParam.replace('ORD-', ''));
+            } else {
+                numericId = parseInt(orderIdParam);
+            }
             orderIds = [numericId];
+            console.log('Parsed order ID:', numericId);
         } else {
             // Fallback: get from localStorage (last order)
             const lastOrder = localStorage.getItem('platoo_last_order');
