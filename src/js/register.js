@@ -131,15 +131,23 @@ document.addEventListener('DOMContentLoaded', function() {
 async function registerPembeli() {
     const nama = document.getElementById('nama').value.trim();
     const telepon = document.getElementById('telepon').value.trim();
+    const email = document.getElementById('email').value.trim();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     
-    console.log('RegisterPembeli called with:', { nama, telepon, username });
+    console.log('RegisterPembeli called with:', { nama, telepon, email, username });
     
     // Validasi
-    if (!nama || !telepon || !username || !password) {
+    if (!nama || !telepon || !email || !username || !password) {
         showMessage('Semua field harus diisi!', 'error');
+        return;
+    }
+    
+    // Validasi email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showMessage('Format email tidak valid!', 'error');
         return;
     }
     
@@ -158,15 +166,19 @@ async function registerPembeli() {
         return;
     }
     
-    // Cek apakah username sudah ada
+    // Cek apakah username atau email sudah ada
     const { data: existingUser } = await supabase
         .from('pembeli')
-        .select('username')
-        .eq('username', username)
+        .select('username, email')
+        .or(`username.eq.${username},email.eq.${email}`)
         .single();
     
     if (existingUser) {
-        showMessage('Username sudah digunakan!', 'error');
+        if (existingUser.username === username) {
+            showMessage('Username sudah digunakan!', 'error');
+        } else {
+            showMessage('Email sudah terdaftar!', 'error');
+        }
         return;
     }
     
@@ -177,6 +189,7 @@ async function registerPembeli() {
             {
                 nama: nama,
                 nomor_telepon: telepon,
+                email: email,
                 username: username,
                 password: password // CATATAN: Di production, gunakan hashing!
             }
@@ -190,12 +203,13 @@ async function registerPembeli() {
     showMessage('Registrasi berhasil! Silakan login.', 'success');
     
     setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
     }, 2000);
 }
 
 async function registerPenjual() {
     const namaRestoran = document.getElementById('namaRestoran').value.trim();
+    const email = document.getElementById('email').value.trim();
     const telepon = document.getElementById('telepon').value.trim();
     const alamat = document.getElementById('alamat').value.trim();
     const password = document.getElementById('password').value;
@@ -204,8 +218,15 @@ async function registerPenjual() {
     const fotoFile = fotoInput ? fotoInput.files[0] : null;
 
     // Validasi
-    if (!namaRestoran || !telepon || !alamat || !password) {
+    if (!namaRestoran || !email || !telepon || !alamat || !password) {
         showMessage('Semua field harus diisi!', 'error');
+        return;
+    }
+    
+    // Validasi email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showMessage('Format email tidak valid!', 'error');
         return;
     }
 
@@ -229,15 +250,19 @@ async function registerPenjual() {
         return;
     }
 
-    // Cek apakah nama restoran (username) sudah ada
+    // Cek apakah nama restoran (username) atau email sudah ada
     const { data: existingRestoran } = await supabase
         .from('restoran')
-        .select('nama_restoran')
-        .eq('nama_restoran', namaRestoran)
+        .select('nama_restoran, email')
+        .or(`nama_restoran.eq.${namaRestoran},email.eq.${email}`)
         .single();
 
     if (existingRestoran) {
-        showMessage('Nama restoran sudah digunakan!', 'error');
+        if (existingRestoran.nama_restoran === namaRestoran) {
+            showMessage('Nama restoran sudah digunakan!', 'error');
+        } else {
+            showMessage('Email sudah terdaftar!', 'error');
+        }
         return;
     }
 
@@ -276,6 +301,7 @@ async function registerPenjual() {
         .insert([
             {
                 nama_restoran: namaRestoran,
+                email: email,
                 nomor_telepon: telepon,
                 alamat: alamat,
                 password: password, // CATATAN: Di production, gunakan hashing!
@@ -291,7 +317,7 @@ async function registerPenjual() {
     showMessage('Registrasi berhasil! Silakan login.', 'success');
 
     setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
     }, 2000);
 }
 
