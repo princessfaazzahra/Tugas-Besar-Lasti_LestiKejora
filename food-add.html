@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Voucher - Platoo (Restoran)</title>
+    <title>Tambah / Edit Makanan - Platoo (Restoran)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/food-form.css">
+    <link rel="stylesheet" href="src/css/food-form.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <main class="main-content">
         <div class="header-section">
             <div class="container">
-                <button class="btn-back" onclick="window.location.href='voucher-catalog.html'">
+                <button class="btn-back" onclick="window.location.href='food-catalog.html'">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
                 </button>
 
                 <div class="page-header">
-                    <h2>Edit Voucher</h2>
+                    <h2>Tambah Makanan Baru</h2>
                 </div>
             </div>
         </div>
@@ -31,32 +31,33 @@
                 <input type="hidden" name="catalog_id" id="catalog_id" value="">
                 <input type="hidden" name="resto_id" id="resto_id" value="">
                 <div class="form-group">
-                    <label for="nama_voucher">Nama Voucher</label>
-                    <input type="text" id="nama_voucher" name="nama_voucher" placeholder="Masukkan nama voucher" required>
+                    <label for="nama_makanan">Nama Makanan</label>
+                    <input type="text" id="nama_makanan" name="nama_makanan" placeholder="Masukkan nama makanan" required>
                 </div>
                 <div class="form-group">
-                    <label for="harga"> Potongan Harga (Rp)</label>
-                    <input type="number" id="harga" name="harga" min="0" placeholder="Masukkan potongan harga" required>
+                    <label for="stok">Stok / Kuota Porsi</label>
+                    <input type="number" id="stok" name="stok" min="0" placeholder="Jumlah porsi tersedia" required>
                 </div>
                 <div class="form-group">
-                    <label for="stok">Kuota Voucher</label>
-                    <input type="number" id="stok" name="stok" min="0" placeholder="Jumlah voucher tersedia" required>
+                    <label for="harga">Harga (Rp)</label>
+                    <input type="number" id="harga" name="harga" min="0" placeholder="Masukkan harga" required>
                 </div>
                 <div class="form-group">
-                    <label for="minimal">Minimal Transaksi (Rp)</label>
-                    <input type="number" id="minimal" name="minimal" min="0" placeholder="Minimal transaksi untuk menggunakan voucher" required>
-                </div>
-                <div class="form-group">
-                    <label for="expiry_date">Expiry Date Voucher</label>
-                    <input type="date" id="expiry_date" name="expiry_date" required>
+                    <label for="foto">Foto Makanan</label>
+                    <input type="file" id="foto" name="foto" accept="image/*">
+                    <small>Format: JPG/PNG. Max 5MB (validasi nanti di JS/server).</small>
+                    <div id="imagePreview">
+                        <img id="previewImg" src="" alt="Preview" style="max-width:100%; max-height:200px; border-radius:8px; object-fit:cover;">
+                    </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit">Simpan</button>
+                    <button type="submit" class="btn-submit">Tambah</button>
                 </div>
             </form>
         </div>
     </main>
 
+    <!-- Custom Modal -->
     <div id="customModal" class="modal">
         <div class="modal-content">
             <div class="modal-icon" id="modalIcon"></div>
@@ -69,6 +70,6 @@
         </div>
     </div>
 
-    <script src="../js/voucher-edit.js"></script>
+    <script src="src/js/food-add.js"></script>
 </body>
 </html>
