@@ -1,13 +1,16 @@
 {
+  "buildCommand": null,
+  "outputDirectory": "src",
+  "framework": null,
   "rewrites": [
-    { "source": "/", "destination": "/src/html/index.html" },
-    { "source": "/login", "destination": "/src/html/login.html" },
-    { "source": "/register", "destination": "/src/html/register.html" },
-    { "source": "/dashboard-pembeli", "destination": "/src/html/dashboard-pembeli.html" },
-    { "source": "/catalog", "destination": "/src/html/catalog.html" },
-    { "source": "/checkout", "destination": "/src/html/checkout.html" },
-    { "source": "/order-status", "destination": "/src/html/order-status.html" },
-    { "source": "/history-pembelian", "destination": "/src/html/history-pembelian.html" },
-    { "source": "/payment-confirmation", "destination": "/src/html/payment-confirmation.html" }
+    { "source": "/", "destination": "/html/index.html" },
+    { "source": "/login", "destination": "/html/login.html" },
+    { "source": "/register", "destination": "/html/register.html" },
+    { "source": "/dashboard-pembeli", "destination": "/html/dashboard-pembeli.html" },
+    { "source": "/catalog", "destination": "/html/catalog.html" },
+    { "source": "/checkout", "destination": "/html/checkout.html" },
+    { "source": "/order-status", "destination": "/html/order-status.html" },
+    { "source": "/history-pembelian", "destination": "/html/history-pembelian.html" },
+    { "source": "/payment-confirmation", "destination": "/html/payment-confirmation.html" }
   ]
 }
