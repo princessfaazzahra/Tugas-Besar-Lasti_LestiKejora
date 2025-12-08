@@ -1158,7 +1158,7 @@ function closeModal(modalId) {
 }
 
 function goToDashboard() {
-    window.location.href = '..//dashboard-pembeli.html';
+    window.location.href = '/dashboard-pembeli.html';
 }
 
 function showNotification(message, type = 'info') {
