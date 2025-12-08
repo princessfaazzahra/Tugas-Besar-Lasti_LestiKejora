@@ -19,7 +19,7 @@ function checkAuth() {
     // Check if user exists and is pembeli
     if (!user || !user.username || user.role !== 'pembeli') {
         console.log('Auth check failed:', user);
-        window.location.href = '../html/login.html';
+        window.location.href = 'login.html';
         return;
     }
     
@@ -35,7 +35,7 @@ function setupEventListeners() {
     // Logout button
     document.getElementById('logoutBtn').addEventListener('click', function() {
         localStorage.removeItem('platoo_user');
-        window.location.href = '../html/login.html';
+        window.location.href = 'login.html';
     });
     
     // Search functionality
@@ -249,7 +249,7 @@ function updateFilterCounts() {
 
 function viewRestaurantCatalog(restaurantId) {
     // Navigate to catalog page with restaurant ID
-    window.location.href = `../html/catalog.html?id=${restaurantId}`;
+    window.location.href = `catalog.html?id=${restaurantId}`;
 }
 
 function showNotification(message, type = 'info') {

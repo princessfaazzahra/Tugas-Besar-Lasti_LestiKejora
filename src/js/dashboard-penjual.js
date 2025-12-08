@@ -15,7 +15,7 @@ function checkAuth() {
     // Check if user exists and is penjual
     if (!user || !user.id || user.role !== 'penjual') {
         console.log('Auth check failed:', user);
-        window.location.href = '../html/login.html';
+        window.location.href = 'login.html';
         return;
     }
     
@@ -60,7 +60,7 @@ function showNotification(message) {
 function handleLogout() {
     localStorage.removeItem('platoo_user');
     localStorage.removeItem('resto_id');
-    window.location.href = '../html/login.html';
+    window.location.href = 'login.html';
 }
 
 console.log('Dashboard Penjual loaded successfully!');

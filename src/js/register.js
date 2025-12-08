@@ -203,7 +203,7 @@ async function registerPembeli() {
     showMessage('Registrasi berhasil! Silakan login.', 'success');
     
     setTimeout(() => {
-        window.location.href = '../html/login.html';
+        window.location.href = 'login.html';
     }, 2000);
 }
 
@@ -317,7 +317,7 @@ async function registerPenjual() {
     showMessage('Registrasi berhasil! Silakan login.', 'success');
 
     setTimeout(() => {
-        window.location.href = '../html/login.html';
+        window.location.href = '../login.html';
     }, 2000);
 }
 

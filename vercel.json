@@ -3,6 +3,8 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
+    { "source": "/html/(.*)", "destination": "/$1.html" },
+    { "source": "/(.*)\\.html", "destination": "/$1.html" },
     { "source": "/(.*)", "destination": "/$1.html" }
   ]
 }

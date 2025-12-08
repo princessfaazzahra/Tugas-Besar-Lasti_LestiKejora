@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!restaurantId || restaurantId === 'undefined' || restaurantId === 'null') {
         console.error('Invalid restaurant ID:', restaurantId);
         showNotification('ID restoran tidak valid', 'error');
-        setTimeout(() => window.location.href = '../html/dashboard-pembeli.html', 2000);
+        setTimeout(() => window.location.href = 'dashboard-pembeli.html', 2000);
         return;
     }
 
@@ -689,7 +689,7 @@ function proceedToCheckout() {
     // Redirect to checkout page
     showNotification('Mengalihkan ke halaman pembayaran...', 'success');
     setTimeout(() => {
-        window.location.href = '../html/checkout.html';
+        window.location.href = 'checkout.html';
     }, 1000);
 }
 

@@ -437,7 +437,7 @@ function showError(message) {
             <h2 class="status-title">Terjadi Kesalahan</h2>
             <p class="status-description">${message}</p>
             <div style="margin-top: 1.5rem;">
-                <button class="btn btn-primary" onclick="window.location.href='../html/catalog.html'">
+                <button class="btn btn-primary" onclick="window.location.href='catalog.html'">
                     Kembali ke Katalog
                 </button>
             </div>
