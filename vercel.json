@@ -1,20 +1,13 @@
 {
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/src/html/index.html"
-    },
-    {
-      "src": "/src/(.*)",
-      "dest": "/src/$1"
-    },
-    {
-      "src": "/(.*).html",
-      "dest": "/src/html/$1.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/src/html/$1.html"
-    }
+  "rewrites": [
+    { "source": "/", "destination": "/src/html/index.html" },
+    { "source": "/login", "destination": "/src/html/login.html" },
+    { "source": "/register", "destination": "/src/html/register.html" },
+    { "source": "/dashboard-pembeli", "destination": "/src/html/dashboard-pembeli.html" },
+    { "source": "/catalog", "destination": "/src/html/catalog.html" },
+    { "source": "/checkout", "destination": "/src/html/checkout.html" },
+    { "source": "/order-status", "destination": "/src/html/order-status.html" },
+    { "source": "/history-pembelian", "destination": "/src/html/history-pembelian.html" },
+    { "source": "/payment-confirmation", "destination": "/src/html/payment-confirmation.html" }
   ]
 }
