@@ -1,4 +1,4 @@
-// EmailJS Configuration
+﻿// EmailJS Configuration
 // Untuk menggunakan EmailJS:
 // 1. Daftar di https://www.emailjs.com/
 // 2. Buat Email Service (Gmail/Outlook/dll)

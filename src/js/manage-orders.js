@@ -1,4 +1,4 @@
-const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
+﻿const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     if (!currentOrderId) {
         alert('Order ID not specified');
-        window.location.href = 'display-orders.html';
+        window.location.href = '/display-orders.html';
         return;
     }
 
@@ -64,7 +64,7 @@ async function loadOrder() {
         if (!order || !order.catalog || order.catalog.resto_id !== restaurantId) {
             container.innerHTML = '<div class="message error">Order not found or you do not have permission to view this order.</div>';
             setTimeout(() => {
-                window.location.href = 'display-orders.html';
+                window.location.href = '/display-orders.html';
             }, 2000);
             return;
         }

@@ -1,4 +1,4 @@
-// Supabase Configuration
+﻿// Supabase Configuration
 const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -44,7 +44,7 @@ async function initializeCheckout() {
     if (!userDataJson) {
         // Tidak ada user yang login - redirect ke login
         console.warn('No user logged in, redirecting to login page');
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return;
     }
     
@@ -72,7 +72,7 @@ async function initializeCheckout() {
     } catch (err) {
         console.error('Invalid user data in localStorage:', err);
         localStorage.removeItem('platoo_user');
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return;
     }
 
@@ -920,7 +920,7 @@ async function confirmCheckout() {
             showLoadingOverlay(false);
 
             // Go to payment confirmation page
-            window.location.href = 'payment-confirmation.html';
+            window.location.href = '/payment-confirmation.html';
         }
     } catch (error) {
         console.error('❌ Error confirming checkout:', error);
@@ -1158,7 +1158,7 @@ function closeModal(modalId) {
 }
 
 function goToDashboard() {
-    window.location.href = '../../dashboard-pembeli.html';
+    window.location.href = '..//dashboard-pembeli.html';
 }
 
 function showNotification(message, type = 'info') {

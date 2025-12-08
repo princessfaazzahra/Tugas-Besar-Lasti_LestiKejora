@@ -1,4 +1,4 @@
-const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
+﻿const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -64,7 +64,7 @@ async function getVoucherIdFromUrl(){
     
     if (!voucherId) {
         await showAlert('ID voucher tidak ditemukan!', 'error');
-        window.location.href = 'voucher-catalog.html';
+        window.location.href = '/voucher-catalog.html';
         return null;
     }
     
@@ -138,7 +138,7 @@ async function handleSubmit(e) {
         
         await showAlert('Voucher berhasil diupdate!', 'success');
         
-        window.location.href = 'voucher-catalog.html';
+        window.location.href = '/voucher-catalog.html';
         
     } catch (error) {
         console.error('Error submitting form:', error);
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const voucherData = await fetchVoucherData(voucherId);
     if (!voucherData) {
         await showAlert('Data voucher tidak ditemukan!', 'error');
-        window.location.href = 'voucher-catalog.html';
+        window.location.href = '/voucher-catalog.html';
         return;
     }
     

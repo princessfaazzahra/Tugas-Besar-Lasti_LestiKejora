@@ -1,4 +1,4 @@
-const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
+﻿const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -64,7 +64,7 @@ async function getCurrentRestoId() {
     
     if (!restoId) {
         await showAlert('Sesi habis atau belum login. Silakan login kembali.', 'warning');
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return null;
     }
     
@@ -137,7 +137,7 @@ async function handleSubmit(e) {
         
         await showAlert('Makanan berhasil ditambahkan!', 'success');
         
-        window.location.href = 'food-catalog.html';
+        window.location.href = '/food-catalog.html';
         
     } catch (error) {
         console.error('Error submitting form:', error);

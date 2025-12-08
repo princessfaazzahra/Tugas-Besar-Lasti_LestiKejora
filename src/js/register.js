@@ -1,4 +1,4 @@
-const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
+﻿const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 
 console.log('Register.js loaded!');
@@ -203,7 +203,7 @@ async function registerPembeli() {
     showMessage('Registrasi berhasil! Silakan login.', 'success');
     
     setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
     }, 2000);
 }
 
@@ -317,7 +317,7 @@ async function registerPenjual() {
     showMessage('Registrasi berhasil! Silakan login.', 'success');
 
     setTimeout(() => {
-        window.location.href = '../login.html';
+        window.location.href = '/login.html';
     }, 2000);
 }
 

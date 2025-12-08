@@ -1,4 +1,4 @@
-const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
+﻿const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!restaurantId || restaurantId === 'undefined' || restaurantId === 'null') {
         console.error('Invalid restaurant ID:', restaurantId);
         showNotification('ID restoran tidak valid', 'error');
-        setTimeout(() => window.location.href = 'dashboard-pembeli.html', 2000);
+        setTimeout(() => window.location.href = '/dashboard-pembeli.html', 2000);
         return;
     }
 
@@ -689,7 +689,7 @@ function proceedToCheckout() {
     // Redirect to checkout page
     showNotification('Mengalihkan ke halaman pembayaran...', 'success');
     setTimeout(() => {
-        window.location.href = 'checkout.html';
+        window.location.href = '/checkout.html';
     }, 1000);
 }
 

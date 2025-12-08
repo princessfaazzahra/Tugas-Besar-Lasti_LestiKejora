@@ -1,4 +1,4 @@
-const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
+﻿const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -15,7 +15,7 @@ function checkAuth() {
     // Check if user exists and is penjual
     if (!user || !user.id || user.role !== 'penjual') {
         console.log('Auth check failed:', user);
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return;
     }
     
@@ -60,7 +60,7 @@ function showNotification(message) {
 function handleLogout() {
     localStorage.removeItem('platoo_user');
     localStorage.removeItem('resto_id');
-    window.location.href = 'login.html';
+    window.location.href = '/login.html';
 }
 
 console.log('Dashboard Penjual loaded successfully!');

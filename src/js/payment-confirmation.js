@@ -1,4 +1,4 @@
-// Supabase Configuration
+﻿// Supabase Configuration
 const SUPABASE_URL = 'https://nxamzwahwgakiatujxug.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YW16d2Fod2dha2lhdHVqeHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMDkwMjcsImV4cCI6MjA4MDU4NTAyN30.9nBRbYXKJmLcWbKcx0iICDNisdQNCg0dFjI_JGVt5pk';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -27,14 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error('Error parsing payment data:', e);
             alert('Data pembayaran tidak valid');
-            window.location.href = 'catalog.html';
+            window.location.href = '/catalog.html';
             return;
         }
     }
 
     if (!paymentData.orderId) {
         alert('Data pembayaran tidak ditemukan');
-        window.location.href = 'catalog.html';
+        window.location.href = '/catalog.html';
         return;
     }
 
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!paymentData.amount || paymentData.amount === 0) {
         console.error('Payment amount is 0 or undefined:', paymentData);
         alert('Total pembayaran tidak valid');
-        window.location.href = 'catalog.html';
+        window.location.href = '/catalog.html';
         return;
     }
 
@@ -135,7 +135,7 @@ function startCountdown() {
             clearInterval(countdownTimer);
             alert('Waktu pembayaran habis. Silakan buat pesanan baru.');
             localStorage.removeItem('platoo_payment_pending');
-            window.location.href = 'catalog.html';
+            window.location.href = '/catalog.html';
         }
     }, 1000);
 }
@@ -404,7 +404,7 @@ function confirmCancel() {
     // Redirect ke halaman CHECKOUT (bukan catalog)
     // Agar user bisa ganti metode pembayaran
     console.log('Redirecting back to checkout page');
-    window.location.href = 'checkout.html';
+    window.location.href = '/checkout.html';
 }
 
 // Email Functions
